@@ -1,0 +1,19 @@
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+// VSCode launch configuration for "Run and Debug" pane (Shift+Ctrl+D)
+//  - https://code.visualstudio.com/docs/java/java-debugging
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+{
+    "version": "1.0.0",
+    "configurations": [
+        {
+            // launch as non-modular project
+            "type": "java",
+            "name": "Launch_1",
+            "request": "launch",
+            "mainClass": "freerider.reservations.jdbc.application.Application",
+            "args": "",
+            "console": "integratedTerminal",    // reuse terminal
+            "vmArgs": "",
+        }
+    ]
+}

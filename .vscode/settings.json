@@ -1,0 +1,56 @@
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+// VSCode main project settings file.
+// 
+// Setting up Java in VSCode:
+//  - https://code.visualstudio.com/docs/languages/java
+//  - https://code.visualstudio.com/docs/java/java-tutorial
+// 
+// VSCode Extensions used for Java development:
+//  - Extension Pack for Java (Microsoft)
+//    https://marketplace.visualstudio.com/items?itemName=vscjava.vscode-java-pack
+// 
+//  - Code Runner Extension for Java
+//    https://marketplace.visualstudio.com/items?itemName=formulahendry.code-runner
+// 
+// VSCode global settings file and project caches:
+//  - Windows: C:/Users/<user>/AppData/Roaming/Code/User/
+//  - MacOS:   ~/Library/Application\ Support/Code/User/
+//     + 
+//     +-- settings.json            ; VSCode global settings file
+//     +-- workspaceStorage         ; VSCode project caches
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+{
+    // Terminal settings, see https://code.visualstudio.com/docs/terminal/profiles
+    "terminal.integrated.profiles.windows": {
+        "Bash": {
+          "path": ["bash"],             // 'bash' terminal
+          "args": ["--init-file", "'${workspaceFolder}'/.vscode/launch-terminal.sh"],
+          "icon": "terminal-bash",
+        },
+        "Cmd": {
+            "path": ["cmd"],            // 'cmd.exe' terminal
+        },
+        "PowerShell": {
+            "path": "powershell",       // 'powershell.exe' terminal
+            "args": ["-noexit"],        // ["-noexit", "-file", "${env:APPDATA}\\PowerShell\\custom-init.ps1"],
+        },
+        "Git Bash": null,               // disable terminals from menu
+        "Command Prompt": null,
+        "JavaScript Debug Terminal": null,
+    },
+    "terminal.integrated.defaultProfile.windows": "Bash",
+
+    // Java Code Runner extension settings
+    "code-runner.defaultLanguage": "java",
+    "code-runner.clearPreviousOutput": true,
+    "code-runner.saveAllFilesBeforeRun": true,
+    "code-runner.executorMap": {    // launch as traditional or as modular project
+        // "java": "javac @.vscode/.sources -d bin/classes && java -cp @.classpath-file freerider.reservations.jdbc.application.Application",
+        "java": "java -cp @.classpath-file freerider.reservations.jdbc.application.Application",
+    },
+
+    // Java and Debug settings
+    "java.autobuild.enabled": true,
+    "java.debug.settings.onBuildFailureProceed": true,
+    "java.debug.settings.showHex": true,
+}
