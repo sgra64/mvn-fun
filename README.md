@@ -1,4 +1,4 @@
-# C3: *mvn-jdbc* - CrudRepository
+# C3: *mvn-jdbc-c3* - CrudRepository
 
 [*CrudRepository*](https://docs.spring.io/spring-data/commons/docs/current/api/org/springframework/data/repository/CrudRepository.html)
 is a well-known interface to access database tables that was introduced by the *Spring Framework*.
@@ -37,7 +37,7 @@ to objects and vice versa, which is called *object-relational mapping:*
 
 &nbsp;
 
-## 1 Set-up New Branch in *mvn-jdbc-repository*
+## 1 Set-up New Branch in *mvn-jdbc-c3*
 
 Set up a new branch in *mvn-jdbc-c3* with the base at the current *mvn-jdbc* branch.
 
@@ -52,7 +52,7 @@ git pull se2-mvn-repo mvn-jdbc-c3 \
     --squash --allow-unrelated-histories --strategy-option theirs
 ```
 
-The *pull* will merge changes intoo your new local branch *mvn-jdbc-repository*.
+The *pull* will merge changes into your new local branch *mvn-jdbc-c3*.
 
 Build the project and run. Fragments of the code are working. The *Customer*
 table is fully shown. Various attributs are missing in the table for *Vehicles*

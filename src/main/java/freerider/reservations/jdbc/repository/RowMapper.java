@@ -16,7 +16,7 @@ class RowMapper {
     /**
      * Singleton {@link RowMapper} instance.
      */
-    private static RowMapper dataBuilder = null;
+    private static RowMapper rowMapper = null;
 
     private final Connection dbcon;
 
@@ -35,10 +35,10 @@ class RowMapper {
      * @return {@link DBSchemaBuilder} singleton instance
      */
     public static RowMapper getInstance(Connection dbcon) {
-        if(dataBuilder==null) {
-            dataBuilder = new RowMapper(dbcon);
+        if(rowMapper==null) {
+            rowMapper = new RowMapper(dbcon);
         }
-        return dataBuilder;
+        return rowMapper;
     }
 
     Optional<?> create(ResultSet rs, String tableName) {
