@@ -29,11 +29,7 @@ Challenges:
 
 1. [*Understand Customer Record and CUSTOMER table*](#4-understand-customer-record-and-customer-table)
 
-1. [*Create a CustomerRepository*](#5-create-a-customerrepository)
-
-1. [*Refactor and Complete the CustomerRepository*](#6-refactor-and-complete-the-customerrepository)
-
-1. [*Refactor into Generic Interface CrudRepository<T,ID>*](#7-refactor-into-generic-interface-crudrepositorytid)
+1. [*Create Customer Records*](#5-create-customer-records)
 
 
 
@@ -362,25 +358,6 @@ public record Customer(
     String lastName
 
 ) {
-
-    /**
-     * Class-level method to return the name of associated database table.
-     * @return name of the database table for customer records.
-     */
-    public static String tableName() { return "CUSTOMER"; }
-
-    /**
-     * Class-level method to return the SQL to create the table.
-     */
-    public static String schema() { return
-        "CREATE TABLE CUSTOMER (" +
-        "  ID INTEGER NOT NULL AUTO_INCREMENT, " +
-        "  FIRSTNAME VARCHAR(255), " +
-        "  LASTNAME VARCHAR(255), " +
-        "  PRIMARY KEY ( ID )" +
-        ")";
-    }
-
     /**
      * Constructor of an object unbound in the database (illegal negative id).
      * @param firstName first name attribute of a customer
@@ -408,7 +385,7 @@ Answer questions:
 &nbsp;
 
 Create or install class
-[*DBSchemaCreator.java*](https://github.com/sgra64/mvn-fun/blob/mvn-jdbc/src/main/java/freerider/reservations/jdbc/application/DBSchemaCreator.java)
+[*DBSchemaBuilder.java*](https://github.com/sgra64/mvn-fun/blob/mvn-jdbc/src/main/java/freerider/reservations/jdbc/application/DBSchemaBuilder.java)
 into the project as a singleton component class:
 
 ```java
@@ -420,43 +397,61 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Supplier;
 
 
 /**
  * Singleton component class that probes whether a schema (tables)
  * is present in a database and creates the schema if not.
  */
-public class DBSchemaCreator {
+public class DBSchemaBuilder {
 
     /**
-     * Singleton {@link DBSchemaCreator} instance.
+     * Name of CUSTOMER table.
      */
-    private static DBSchemaCreator dbSchema = null;
+    public final static String CUSTOMER_Table = "CUSTOMER";
+
+    /**
+     * SQL-Schema to create CUSTOMER table.
+     */
+    public final static String CUSTOMER_Schema =
+        "CREATE TABLE if not exists CUSTOMER (" +
+        "  ID INT not null auto_increment, " +
+        "  FIRSTNAME VARCHAR(255), " +
+        "  LASTNAME VARCHAR(255), " +
+        "  PRIMARY KEY ( ID )" +
+        ")";
+
+    /**
+     * Singleton {@link DBSchemaBuilder} instance.
+     */
+    private static DBSchemaBuilder dbSchema = null;
 
     /**
      * List of pairs: schema name and schema definition to create
      * in a database.
      */
     private final List<String> tableSQLinCreationOrder = List.of(
-        Customer.tableName(), Customer.schema()
+        "CUSTOMER", CUSTOMER_Schema
     );
 
     /**
      * Private constructor to avoid external instance creation as
      * part of the Singleton pattern.
      */
-    private DBSchemaCreator() { }
+    private DBSchemaBuilder() { }
 
     /**
-     * Public getter method of {@link DBSchemaCreator} instance as
+     * Public getter method of {@link DBSchemaBuilder} instance as
      * part of the Singleton pattern.
-     * @return {@link DBSchemaCreator} singleton instance
+     * @return {@link DBSchemaBuilder} singleton instance
      */
-    public static DBSchemaCreator getInstance() {
+    public static DBSchemaBuilder getInstance() {
         if(dbSchema==null) {
-            dbSchema = new DBSchemaCreator();
+            dbSchema = new DBSchemaBuilder();
         }
         return dbSchema;
+        // return java.util.Optional.ofNullable(dbSchema).orElse(dbSchema = new DBSchema());
     }
 
     /**
@@ -465,7 +460,10 @@ public class DBSchemaCreator {
      * @param dbcon open database connection
      * @return list of names of created tables
      */
-    public List<String> probeCreateSchema(Connection dbcon) {
+    public List<String> probeCreateSchema(
+        Connection dbcon,
+        Supplier<Integer> loadCUSTOMER
+    ) {
         List<String> tablesFound = new ArrayList<>();
         List<String> tablesCreated = new ArrayList<>();
         try(
@@ -495,6 +493,16 @@ public class DBSchemaCreator {
         }
         tablesFound.clear();
         // 
+        // invoke CUSTOMER data load callout
+        for(String tableCreated : tablesCreated) {
+            switch(tableCreated) {
+            case "CUSTOMER": if(loadCUSTOMER != null) loadCUSTOMER.get(); break;
+            }
+        }
+        var msg = tablesCreated.size()==0? "opened DB: all tables found" :
+            String.format(" --> opened DB: %d tables created", tablesCreated.size());
+        System.out.println(msg);
+        // 
         return tablesCreated;
     }
 }
@@ -510,84 +518,13 @@ Answer questions:
 
 1. What is the difference between a *lazy* and a *strict Singleton*?
 
-1. Which variation was implemented in `DBSchemaCreator.java` and why?
+1. Which variation was implemented in `DBSchemaBuilder.java` and why?
 
 
 
 &nbsp;
 
-## 5 Create a *CustomerRepository*
-
-A [*Repository*](https://docs.spring.io/spring-data/data-commons/docs/current/api/org/springframework/data/repository/Repository.html)
-(specifically the
-[*CrudRepository*](https://docs.spring.io/spring-data/data-commons/docs/current/api/org/springframework/data/repository/CrudRepository.html)
-)
-is an abstraction introduced by the *Spring Boot* framework to wrap
-a database table with a well-defined interface of methods to:
-
-- *(C)reate,*
-
-- *(R)ead,*
-
-- *(U)pdate* and
-
-- *(D)elete*
-
-records in a database.
-
-New class `CustomerRepository.java` implements the following methods:
-
-```java
-package freerider.reservations.jdbc.application;
-
-public class CustomerRepository {
-
-    /**
-     * Public getter method of {@link CustomerRepository} instance as
-     * part of the Singleton pattern.
-     * @param dbcon open database connection
-     * @return {@link CustomerRepository} singleton instance
-     */
-    public static CustomerRepository getInstance(Connection dbcon) { ... }
-
-    
-    /**
-     * Method to save (insert) a new {@link Customer} object in the associated
-     * database table with a new {@code id} assigned by the database.
-     * @param firstName first name attribute of a customer
-     * @param lastName last name attribute of a customer
-     * @return {@link Customer} object with {@code id} assigned by
-     *          the database or empty if object was not inserted
-     */
-    Optional<Customer> save(String firstName, String lastName) { ... }
-
-    
-    /**
-     * Method to retrieve an {@link Customer} object from the associated
-     * database table by a provided {@code id}.
-     * @param id {@code id} of the object to retrieve from the database
-     * @return retrieved object if {@code id} was found or empty result
-     */
-    public Optional<Customer> findById(long id) { ... }
-
-    
-    /**
-     * Method to retrieve all {@link Customer} objects from the associated
-     * database table.
-     * @return all objects retreived from the associated database table
-     */
-    public Iterable<Customer> findAll() { ... }
-
-}
-```
-
-
-&nbsp;
-
-Install class
-[*CustomerRepository.java*](https://github.com/sgra64/mvn-fun/blob/mvn-jdbc/src/main/java/freerider/reservations/jdbc/application/CustomerRepository.java)
-in the project.
-
+## 5 Create *Customer* Records
 
 Supplement changes in class
 [*Application.java*](https://github.com/sgra64/mvn-fun/blob/mvn-jdbc/src/main/java/freerider/reservations/jdbc/application/Application.java) :
@@ -598,8 +535,10 @@ package freerider.reservations.jdbc.application;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.stream.StreamSupport;
+import java.sql.Statement;
 
 
 /**
@@ -623,42 +562,83 @@ public class Application {
         String db_user = "sa";
         String db_password = "";
 
+        // try to open database connection
         try(
-            // try to open database connection
-            Connection dbcon = DriverManager.getConnection(db_url, db_user, db_password)
+            final Connection dbcon = DriverManager.getConnection(db_url, db_user, db_password)
         ) {
-            var dbSchemaCreator = DBSchemaCreator.getInstance();
-            var tablesCreated = dbSchemaCreator.probeCreateSchema(dbcon);
-            var msg = tablesCreated.size()==0? "opened DB: all tables found" :
-                String.format(" --> opened DB: %d tables created", tablesCreated.size());
-            System.out.println(msg);
-            // 
-            var customerRepository = CustomerRepository.getInstance(dbcon);
-            if(tablesCreated.size() > 0) {
-                // insert records if table CUSTOMER was newly created
-                if(tablesCreated.contains(Customer.tableName())) {
-                    customerRepository.save("Eric", "Meyer");
-                    customerRepository.save("Tony", "Allister");
-                    customerRepository.save("Sandra", "Ohlstadt");
-                    customerRepository.save("Erica", "Gronemann");
-                    customerRepository.save("Khaleed", "Samadi");
-                    customerRepository.save("Igor", "Medwedev");
-                }
-            }
+            System.out.println("Database connection open.");
+            
+            // load schema into database, if schema does not exist and
+            // load data into database, if schema was created
+            DBSchemaBuilder.getInstance().probeCreateSchema(dbcon,
+                () -> load_CUSTOMER_Data(dbcon)
+            );
 
-            var customers = customerRepository.findAll();
-            StreamSupport.stream(customers.spliterator(), false)
-                // print only Customer objects with even id
-                // .filter(customer -> customer.id() % 2 == 0)
+            // read records from CUSTOMER table
+            try(
+                Statement stmt = dbcon.createStatement();
+                ResultSet rs = stmt.executeQuery("SELECT * FROM CUSTOMER")
+            ) {
+                StringBuilder sb = new StringBuilder();
+                String hline = String.format("+----+%s+%s+", "-".repeat(21), "-".repeat(21));
+                sb.append(String.format("%s\n", hline));
+                sb.append(String.format("| %-2s | %-20s| %-20s|\n", "ID", "FIRSTNAME", "LASTNAME"));
+                sb.append(String.format("%s\n", hline));
                 // 
-                // format and report customers
-                .map(customer -> String.format(" --> %s", customer))
-                .forEach(System.out::println);
-
+                // iterate over ResultSet of returned CUSTOMER records
+                while(rs.next()) {
+                    long id = rs.getLong("ID");
+                    String firstName = rs.getString("FIRSTNAME");
+                    String lastName = rs.getString("LASTNAME");
+                    // 
+                    String line = String.format("| %2d | %-20s| %-20s|\n", id, firstName, lastName);
+                    sb.append(line);
+                }
+                sb.append(String.format("%s\n", hline));
+                System.out.println(sb.toString());
+            // 
+            } catch (SQLException e) {
+                System.out.println(String.format("Error reading all records from database CUSTOMER"));
+            }
+        // 
         } catch (SQLException e) {
-            System.out.println(String.format("error opening database connection(%s, %s, %s): \"%s\"",
+            System.out.println(String.format("Error opening database connection(%s, %s, %s): \"%s\"",
                 db_url, db_user, db_password, e.getMessage()));
         }
+    }
+
+    /**
+     * Load CUSTOMER records into corresponding table.
+     * @param dbcon open database connection
+     * @return number records loaded
+     */
+    private static int load_CUSTOMER_Data(Connection dbcon) {
+        int numRowsInserted = 0;
+        // INSERT customers as one transaction, if CUSTOMER table is empty
+        try(PreparedStatement ps = dbcon.prepareStatement(
+            // 
+            "INSERT INTO CUSTOMER(FIRSTNAME, LASTNAME) VALUES " +
+                "('Eric', 'Meyer'), ('Tony', 'Allister'), ('Sandra', 'Ohlstadt'), " +
+                "('Erica', 'Gronemann'), ('Khaleed', 'Samadi'), ('Igor', 'Medwedev')",
+                Statement.RETURN_GENERATED_KEYS
+        )) {
+            // issue INSERT transaction
+            numRowsInserted = ps.executeUpdate();
+            // 
+            // obtain result set with ID attributes assigned by database
+            try(ResultSet rs = ps.getGeneratedKeys()) {
+                while(rs.next()) {
+                    long id = rs.getLong(1);
+                    System.out.println(String.format("inserted customer with id: %d (%d rows)",
+                        id, numRowsInserted));
+                }
+            } catch(SQLException e) {
+                System.out.println(e.getMessage());
+            }
+        } catch(SQLException e) {
+            System.out.println(e.getMessage());
+        }
+        return numRowsInserted;
     }
 }
 ```
@@ -667,54 +647,27 @@ Run the code:
 
 ```
 Hello "freerider.reservations.jdbc" example!
+Database connection open.
+inserted customer with id: 1 (6 rows)
+inserted customer with id: 2 (6 rows)
+inserted customer with id: 3 (6 rows)
+inserted customer with id: 4 (6 rows)
+inserted customer with id: 5 (6 rows)
+inserted customer with id: 6 (6 rows)
  --> opened DB: 1 tables created
-inserted customer "Eric Meyer"  with id: 1 (1 rows)
-inserted customer "Tony Allister"       with id: 2 (1 rows)
-inserted customer "Sandra Ohlstadt"     with id: 3 (1 rows)
-inserted customer "Erica Gronemann"     with id: 4 (1 rows)
-inserted customer "Khaleed Samadi"      with id: 5 (1 rows)
-inserted customer "Igor Medwedev"       with id: 6 (1 rows)
- --> Customer[id=1, firstName=Eric, lastName=Meyer]
- --> Customer[id=2, firstName=Tony, lastName=Allister]
- --> Customer[id=3, firstName=Sandra, lastName=Ohlstadt]
- --> Customer[id=4, firstName=Erica, lastName=Gronemann]
- --> Customer[id=5, firstName=Khaleed, lastName=Samadi]
- --> Customer[id=6, firstName=Igor, lastName=Medwedev]
-```
-
-
-
-&nbsp;
-
-## 6 Refactor and Complete the *CustomerRepository*
-
-Refactor *CustomerRepository.java* into an interface and an implementation class
-*CustomerRepositoryImpl.java*.
-
-Complete the interface with methods of the
-[*CrudRepository*](https://docs.spring.io/spring-data/data-commons/docs/current/api/org/springframework/data/repository/CrudRepository.html)
-interface and implement methods.
-
-
-
-&nbsp;
-
-## 7 Refactor into Generic Interface *CrudRepository<T,ID>*
-
-Refactor interface *CustomerRepository.java* into a generic interface
-*CrudRepository<T,ID>* like *Spring Boot's*
-[*CrudRepository*](https://docs.spring.io/spring-data/data-commons/docs/current/api/org/springframework/data/repository/CrudRepository.html)
-
-Implement class *CustomerRepositoryImpl.java* as:
-
-```java
-class CustomerRepositoryImpl implements CrudRepository<Customer,Long> {
-    ...
-}
++----+---------------------+---------------------+
+| ID | FIRSTNAME           | LASTNAME            |
++----+---------------------+---------------------+
+|  1 | Eric                | Meyer               |
+|  2 | Tony                | Allister            |
+|  3 | Sandra              | Ohlstadt            |
+|  4 | Erica               | Gronemann           |
+|  5 | Khaleed             | Samadi              |
+|  6 | Igor                | Medwedev            |
++----+---------------------+---------------------+
 ```
 
 
 <!-- 
 
 <img src="https://raw.githubusercontent.com/sgra64/mvn-fun/refs/heads/markup/img/git-log-after-merge.png" width="600"/> -->
-
