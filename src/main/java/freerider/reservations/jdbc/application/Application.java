@@ -34,39 +34,9 @@ public class Application {
             final Connection dbcon = DriverManager.getConnection(db_url, db_user, db_password)
         ) {
             System.out.println("Database connection open.");
-            // 
-            // // load schema into database, if schema does not exist and
-            // // load data into database, if schema was created
-            // DBSchemaBuilder.getInstance().probeCreateSchema(dbcon,
-            //     () -> load_CUSTOMER_Data(dbcon)
-            // );
 
-            // // read records from CUSTOMER table
-            // try(
-            //     Statement stmt = dbcon.createStatement();
-            //     ResultSet rs = stmt.executeQuery("SELECT * FROM CUSTOMER")
-            // ) {
-            //     StringBuilder sb = new StringBuilder();
-            //     String hline = String.format("+----+%s+%s+", "-".repeat(21), "-".repeat(21));
-            //     sb.append(String.format("%s\n", hline));
-            //     sb.append(String.format("| %-2s | %-20s| %-20s|\n", "ID", "FIRSTNAME", "LASTNAME"));
-            //     sb.append(String.format("%s\n", hline));
-            //     // 
-            //     // iterate over ResultSet of returned CUSTOMER records
-            //     while(rs.next()) {
-            //         long id = rs.getLong("ID");
-            //         String firstName = rs.getString("FIRSTNAME");
-            //         String lastName = rs.getString("LASTNAME");
-            //         // 
-            //         String line = String.format("| %2d | %-20s| %-20s|\n", id, firstName, lastName);
-            //         sb.append(line);
-            //     }
-            //     sb.append(String.format("%s\n", hline));
-            //     System.out.println(sb.toString());
-            // // 
-            // } catch (SQLException e) {
-            //     System.out.println(String.format("Error reading all records from database CUSTOMER"));
-            // }
+
+
         // 
         } catch (SQLException e) {
             System.out.println(String.format("Error opening database connection(%s, %s, %s): \"%s\"",
