@@ -107,7 +107,7 @@ class DBSchemaBuilder {
             ResultSet rs = stmt.executeQuery("SHOW TABLES");
             while(rs.next()){
                 var table = rs.getString(1);
-                System.out.println(String.format(" --> found table: %s", table));
+                // System.out.println(String.format(" --> found table: %s", table));
                 tablesFound.add(table);
             }
             if( ! tablesFound.contains(tableName)) {
