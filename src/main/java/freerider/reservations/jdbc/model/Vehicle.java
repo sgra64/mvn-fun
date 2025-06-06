@@ -23,12 +23,4 @@ public record Vehicle(
 
 ) {
 
-    /**
-     * Constructor of object that is not in the database (with illegal negative id).
-     * @param make brand of a Vehicle, e.g. "VW"
-     * @param model model of a Vehicle, e.g. "Golf"
-     */
-    public Vehicle(String make, String model) {
-        this(-1, make, model);
-    }
 }

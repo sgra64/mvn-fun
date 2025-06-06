@@ -33,13 +33,4 @@ public record Customer(
      */
     public enum Status {Active, InRegistration, Terminated};
 
-    /**
-     * Constructor of object that is not in the database (with illegal negative id).
-     * @param name name of a Customer
-     * @param contact contact information of a Customer (email, phone number)
-     * @param status status attribute of a Customer: Active, InRegistration, Terminated
-     */
-    public Customer(String name, String contact, Status status) {
-        this(-1, name, contact, status);
-    }
 }
