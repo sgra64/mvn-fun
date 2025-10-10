@@ -371,7 +371,7 @@ export CLASSPATH="target/classes"
 java com.mycompany.app.App 3 27 1092 65536 10952347 100000039
 ```
 
-Output shows factors of `n` and an indicator of prime numbers:
+After implementation, output shows factors of `n` and an indicator of prime numbers:
 
 ```
 Hello Factors!
@@ -383,10 +383,77 @@ Hello Factors!
  - n=100000039 -> [100000039] (prime number)
 ```
 
-Create a component class: `Factorizer.java` as a (lazy) singleton with a method
+&nbsp;
+
+Create a **Component:** `Factorizer` that consists of:
+
+- a public interface `Factorizer.java` and
+
+- a non-public implementation class `FactorizerImpl.java`.
+
+- Implement the component as a *(lazy) singleton*.
+
+The interface `Factorizer.java` is:
 
 ```java
-factorize(int n);           // --> return prime factors of positive 'n'
+/**
+ * Interface of a singleton component that factorizes numbers
+ * into prime factors.
+ */
+public interface Factorizer {
+
+    /**
+     * Method accepts numbers as {@code args} and outputs lines with the
+     * number {@code n}, its factors and an indicator whether {@code n} is a
+     * prime number.
+     * <p>For example:</p>
+     * <pre>
+     * {@code - n=3 -> [3] (prime number)
+     * - n=27 -> [3, 3, 3]
+     * - n=1092 -> [2, 2, 3, 7, 13]
+     * - n=65536 -> [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]
+     * - n=10952347 -> [7, 23, 59, 1153]
+     * - n=100000039 -> [100000039] (prime number)
+     * }
+     * </pre>
+     * @param args numbers to factorize
+     */
+    public void run(String[] args);
+
+    /**
+     * Method accepts a number {@code n} and returns its factors.
+     * @param n number to factorize
+     * @return factors
+     */
+    public List<Integer> factorize(Integer n);
+
+    /**
+     * Return reference to singleton instance of (hidden) implementation class
+     * that implements the {@link Factorizer} interface.
+     * @return reference to instance that implements the {@link Factorizer} interface
+     */
+    static Factorizer getInstance() {
+        return FactorizerImpl.getInstance();
+    }
+}
+```
+
+Test your implementation such that it produces the desired output:
+
+```sh
+java com.mycompany.app.App 3 27 1092 65536 10952347 100000039
+```
+
+Output should now show correct factors of `n` and the indicator of prime numbers:
+
+```
+Hello Factors!
+ - n=3 -> [3] (prime number)
+ - n=27 -> [3, 3, 3]
+ - n=1092 -> [2, 2, 3, 7, 13]
+ - n=65536 -> [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]
+ - n=10952347 -> [7, 23, 59, 1153]
+ - n=100000039 -> [100000039] (prime number)
 ```
 
 Commit changes to the `factorizer` branch.
@@ -634,6 +701,17 @@ src/test/java/com/mycompany/app
 src/test/java/com/mycompany/app/AppTest.java
 ```
 
+Run the program:
+
+```sh
+java com.mycompany.app.App 3 27 1092 65536 10952347 100000039
+```
+
+Output shows factorization:
+
+```
+Hello world!
+```
 
 Change the `version` tag in `pom.xml` from `1.0-SNAPSHOT` to `RELEASE-1.0.0`:
 
@@ -659,50 +737,81 @@ b5d633b (tag: root) root commit (empty)
 
 &nbsp;
 
-Merge the *factorizer*-branch into the *release*-branch:
+Merge the *factorizer*-branch into the *release*-branch.
+
+<!--
+```sh
+git merge factorizer-de --squash
+```
+-->
+
+You will likely see merge conflicts:
 
 ```
 Auto-merging pom.xml
 CONFLICT (content): Merge conflict in pom.xml
+Squash commit -- not updating HEAD
 Automatic merge failed; fix conflicts and then commit the result.
 ```
 
-Resolve the merge conflict and show the status of the *open merge*:
+Show the status of the *open merge*:
 
 ```sh
 git status                  # show the status of the open merge
 ```
 ```
 On branch release
-You have unmerged paths.
-  (fix conflicts and run "git commit")
-  (use "git merge --abort" to abort the merge)
-
 Changes to be committed:
+  (use "git restore --staged <file>..." to unstage)
         deleted:    src/main/java/com/mycompany/app/App.java
         new file:   src/main/java/de/factorizer/App.java
         new file:   src/main/java/de/factorizer/Factorizer.java
-        renamed:    src/test/java/com/mycompany/app/AppTest.java
-                                -> src/test/java/de/factorizer/AppTest.java
+        new file:   src/main/java/de/factorizer/FactorizerImpl.java
+        renamed:    src/test/java/com/mycompany/app/AppTest.java -> src/test/jav
+a/de/factorizer/AppTest.java
         new file:   src/test/java/de/factorizer/FactorizerTests.java
 
 Unmerged paths:
+  (use "git restore --staged <file>..." to unstage)
   (use "git add <file>..." to mark resolution)
         both modified:   pom.xml
+```
+
+Make sure the code builds and runs properly before closing the open merge:
+
+
+```sh
+mvn clean compile           # clean rebuild before running the code
+
+mvn test                    # run unit tests -> BUILD SUCCESS
+
+java de.factorizer.App 3 27 1092 65536 10952347 100000039
+```
+
+Output:
+
+```
+Hello Factors!
+ - n=3 -> [3] (prime number)
+ - n=27 -> [3, 3, 3]
+ - n=1092 -> [2, 2, 3, 7, 13]
+ - n=65536 -> [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]
+ - n=10952347 -> [7, 23, 59, 1153]
+ - n=100000039 -> [100000039] (prime number)
 ```
 
 Close (commit) the merge with: `merge branch factorizer, RELEASE-1.0.0`
 and show status and commit log:
 
 ```sh
-git status                      # show the status of the open merge
+git status                          # show the status of the open merge
 
-On branch release               # working tree is clean
+On branch release                   # working tree is clean
 nothing to commit, working tree clean
 ```
 
 ```sh
-git log --graph --oneline       # show commit log with branch-graph
+git log --oneline --all --graph     # show commit log with branch-graph
 ```
 
 <img src="https://raw.githubusercontent.com/sgra64/mvn-fun/refs/heads/markup/img/git-log-after-merge.png" width="600"/>
