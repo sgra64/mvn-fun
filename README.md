@@ -1,4 +1,9 @@
+<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+<!-- A1 (SE-2)
+-->
 # Project: *mvn-fun* - Project Build with *Maven*
+
+<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
 
 *Maven* is a popular build-tool for Java.
 
@@ -20,10 +25,16 @@ Challenges:
 
 1. [*Refactor the Package Structure*](#8-refactor-the-package-structure)
 
-1. [*JUnit Tests*](#9-junit-tests)
+1. [*Unit Tests*](#9-unit-tests)
 
-1. [*Release*](#10-release)
+1. [*Javadoc*](#10-javadoc)
 
+1. [*Release*](#11-release)
+
+1. [*Host Project in a Remote Repository*](#12-host-project-in-a-remote-repository)
+
+
+<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
 
 &nbsp;
 
@@ -48,16 +59,17 @@ and answer questions with 1-3 bullets each:
 1. What are *Nightly builds*?
 
 
+<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
 
 &nbsp;
 
 ## 2. Maven in 5 Minutes
 
-Write down the start time and end time of the task and see whether you managed in 5 minutes.
-
 Perform the
 [*Maven in 5 Minutes*](https://maven.apache.org/guides/getting-started/maven-in-five-minutes.html)
-challenge starting with installing maven (or testing maven has been installed).
+challenge, which starts with installing *maven* (or test maven has been installed).
+You may write down the start time and end time to see whether you manage the
+challenge in 5 minutes.
 
 Test maven:
 
@@ -65,33 +77,37 @@ Test maven:
 mvn --version           # run maven asking for the installed verion
 ```
 
-Output should be something similar to (know what to when when you see *"mvn: command not found"*):
+Output should be something similar to (know what to when you see *"mvn: command
+not found"*):
 
 ```
 Maven home: C:\opt\maven
-Java version: 21, vendor: Oracle Corporation, runtime: C:\Program Files\Java\jdk
--21
+Java version: 21, vendor: Oracle Corporation, runtime: C:\Program Files\Java\jdk-21
 Default locale: en_US, platform encoding: UTF-8
 OS name: "windows 10", version: "10.0", arch: "amd64", family: "windows"
 ```
 
-Make sure, environment variables maven uses have been set matching your system.
+Make sure, environment variables *maven* uses have been set matching your system.
 See example [*.bashrc*](https://github.com/sgra64/dotfiles/blob/main/.bashrc.path)
-how to set variables.
+to set variables in your *.bashrc* or *.zshrc* (Mac) file.
+
+Type:
 
 ```sh
-echo $JAVA_HOME         # output value of JAVA_HOME environment variable
+echo $JAVA_HOME         # show the value of the JAVA_HOME environment variable
 --> /c/Program Files/Java/jdk-21
 
-echo $MAVEN_HOME        # path where maven is installed on your system
+echo $MAVEN_HOME        # show the path where maven is installed on your system
 --> /c/opt/maven
 
-echo $M2_HOME           # path where maven stores downloaded dependencies (.jar)
+echo $M2_HOME           # show the path where maven stores dependencies (.jar)
 --> /c/Sven1/svgr2/tmp/svgr/.m2
 ```
 
-Perform step *"Creating a Project"* - `cd` into the project. Draw the structure under
-the `src` directory.
+`cd` to a workspace to create a new *maven* project.
+
+Perform step *"Creating a Project"* of the *Maven in 5 Minutes* tutorial.
+It creates a new project: *my-app*.
 
 <!-- 
 Create project directory 'my-app' with the demo maven project inside:
@@ -100,12 +116,60 @@ Create project directory 'my-app' with the demo maven project inside:
         -DarchetypeVersion=1.5 -DinteractiveMode=false
  -->
 
-Open file [*pom.xml*](pom.xml). Which data-format is used for this file?
+`cd` into the project.
 
-Open the source-file `App.java`
+```sh
+ls -la                  # show the content of the project
+```
+
+Output shows a file *pom.xml* and a directory *src*. Directory *.mvn* stores
+local *maven* settings (not needed for now):
+
+```
+total 8
+drwxr-xr-x 1 svgr2 Kein    0 Oct 16 21:25 .
+drwxr-xr-x 1 svgr2 Kein    0 Oct 16 21:25 ..
+drwxr-xr-x 1 svgr2 Kein    0 Oct 16 21:25 .mvn
+-rw-r--r-- 1 svgr2 Kein 3191 Oct 16 21:25 pom.xml   <-- file for the maven build process
+drwxr-xr-x 1 svgr2 Kein    0 Oct 16 21:25 src       <-- project source code
+```
+
+```sh
+find src                # show the source tree
+```
+```
+src
+src/main
+src/main/java
+src/main/java/com
+src/main/java/com/mycompany
+src/main/java/com/mycompany/app
+src/main/java/com/mycompany/app/App.java        <-- Java source file with main()
+src/test
+src/test/java
+src/test/java/com
+src/test/java/com/mycompany
+src/test/java/com/mycompany/app
+src/test/java/com/mycompany/app/AppTest.java    <-- Sample JUnit test file
+```
+
+Mind the structure of the *src* tree:
+
+```sh
+src/main/java/com/mycompany/app/App.java
+^^^^^^^^^^^^^ - - - - - - - - - - - - - - - - - maven path to Java sources
+
+              ^^^^^^^^^^^^^^^^^ - - - - - - - - groupId: 'com.mycompany.app'
+
+                                ^^^^^^^^- - - - class 'App' in package 'com.mycompany.app'
+```
+
+Tests mirror the structure under `src/test/java`.
+
+Open file `App.java` in your IDE:
 
 ```java
-package com.mycompany.app;
+package com.mycompany.app;      // <-- groupId appears as package: 'com.mycompany.app'
 
 /**
  * Hello world!
@@ -117,29 +181,40 @@ public class App {
 }
 ```
 
-Relate the package structure `com.mycompany.app` to the location of the file in
-the src-tree:
+Open file [*pom.xml*](pom.xml) in your IDE:
 
-```sh
-find src
-```
-```
-src
-src/main
-src/main/java
-src/main/java/com
-src/main/java/com/mycompany
-src/main/java/com/mycompany/app
-src/main/java/com/mycompany/app/App.java
-src/test
-src/test/java
-src/test/java/com
-src/test/java/com/mycompany
-src/test/java/com/mycompany/app
-src/test/java/com/mycompany/app/AppTest.java
+```xml
+<groupId>com.mycompany.app</groupId>        <!-- groupId    -->
+<artifactId>my-app</artifactId>             <!-- artifactId -->
+<version>1.0-SNAPSHOT</version>             <!-- version    -->
+
+<properties>
+  <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+  <maven.compiler.release>17</maven.compiler.release>
+</properties>
+
+<dependencies>
+  <!-- two dependencies -->
+
+  <!-- https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-api -->
+  <dependency>
+    <groupId>org.junit.jupiter</groupId>
+    <artifactId>junit-jupiter-api</artifactId>
+    <scope>test</scope>     <!--  scope means: dependency effecitv only for tests   -->
+                            <!--  no <version> means: 'latest'   -->
+  </dependency>
+
+  <!-- https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-params -->
+  <dependency>
+    <groupId>org.junit.jupiter</groupId>
+    <artifactId>junit-jupiter-params</artifactId>
+    <scope>test</scope>
+  </dependency>
+</dependencies>
 ```
 
 
+<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
 
 &nbsp;
 
@@ -159,12 +234,12 @@ of the source file `App.java` in the `src` tree:
 find target
 ```
 ```
-target
+target/
 target/classes
 target/classes/com
 target/classes/com/mycompany
 target/classes/com/mycompany/app
-target/classes/com/mycompany/app/App.class
+target/classes/com/mycompany/app/App.class      <-- compiled App.java
 target/generated-sources
 target/generated-sources/annotations
 target/maven-status
@@ -175,7 +250,7 @@ target/maven-status/maven-compiler-plugin/compile/default-compile/createdFiles.l
 target/maven-status/maven-compiler-plugin/compile/default-compile/inputFiles.lst
 ```
 
-Run the program:
+Run the program from `target/classes`:
 
 ```sh
 java -cp target/classes com.mycompany.app.App
@@ -196,20 +271,20 @@ Show the result in `target`:
 ls -la target
 ```
 ```
-total 12
-drwxr-xr-x 1    0 Apr  4 00:33 ./
-drwxr-xr-x 1    0 Apr  4 00:24 ../
-drwxr-xr-x 1    0 Apr  4 00:24 classes/
-drwxr-xr-x 1    0 Apr  4 00:24 generated-sources/
-drwxr-xr-x 1    0 Apr  4 00:33 generated-test-sources/
-drwxr-xr-x 1    0 Apr  4 00:33 maven-archiver/
-drwxr-xr-x 1    0 Apr  4 00:24 maven-status/
--rw-r--r-- 1 2872 Apr  4 00:33 my-app-1.0-SNAPSHOT.jar      <-- packaged .jar file
-drwxr-xr-x 1    0 Apr  4 00:33 surefire-reports/
-drwxr-xr-x 1    0 Apr  4 00:33 test-classes/
+drwxr-xr-x 1    0 Oct 16 21:57 ./
+drwxr-xr-x 1    0 Oct 16 21:56 ../
+drwxr-xr-x 1    0 Oct 16 21:56 classes/
+drwxr-xr-x 1    0 Oct 16 21:56 generated-sources/
+drwxr-xr-x 1    0 Oct 16 21:56 generated-test-sources/
+drwxr-xr-x 1    0 Oct 16 21:56 maven-archiver/
+drwxr-xr-x 1    0 Oct 16 21:56 maven-status/
+-rw-r--r-- 1 2751 Oct 16 21:57 my-app-1.0-SNAPSHOT.jar      <-- packaged .jar file
+drwxr-xr-x 1    0 Oct 16 21:56 surefire-reports/
+drwxr-xr-x 1    0 Oct 16 21:56 test-classes/
 ```
 
-Run the packaged result of the build process: `my-app-1.0-SNAPSHOT.jar`:
+Run the packaged *.jar* from `target/my-app-1.0-SNAPSHOT.jar` as result
+of the *maven* build process:
 
 ```sh
 java -cp target/my-app-1.0-SNAPSHOT.jar com.mycompany.app.App
@@ -219,6 +294,7 @@ Hello World!
 ```
 
 
+<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
 
 &nbsp;
 
@@ -226,7 +302,7 @@ Hello World!
 
 Learn about the
 [*Maven Build Lifecycle*](https://maven.apache.org/guides/introduction/introduction-to-the-lifecycle.html)
-and write down actions the following commands perform:
+and write down what actions of the following commands perform:
 
 - mvn *validate*
 - mvn *compile*
@@ -237,21 +313,23 @@ and write down actions the following commands perform:
 - mvn *deploy*
 - mvn *clean*
 
-Maven internally manages `CLASSPATH` from dependencies in `pom.xml`:
+Maven internally creates *CLASSPATH* from dependencies in *pom.xml*.
+Show *CLASSPATH*:
 
 ```sh
-mvn dependency:build-classpath              # show CLASSPATH or write to file
+mvn dependency:build-classpath              # show CLASSPATH and write to file
 mvn dependency:build-classpath -Dmdep.outputFile=.classpath     # '.classpath'
 cat .classpath
 ```
 
-`CLASSPATH` refers to `.jar` files maven downloaded from `pom.xml` depeendencies
-from the
-[*Maven Repository*](https://mvnrepository.com/)
-(or *"Maven Central" repository*) to the local cache located at `M2_HOME`
-(usually under a folder `.m2` in the `HOME` directory).
+*CLASSPATH* refers to *.jar* files *maven* downloaded with dependencies
+in *pom.xml* from the
+[*Maven Repository*](https://mvnrepository.com/). *Maven* caches downloaded
+dependencies at the `M2_HOME` directory, usually under a folder `.m2`
+in the *HOME* directory.
 
 
+<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
 
 &nbsp;
 
@@ -262,8 +340,35 @@ Change the print line from: *"Hello World!"* to: *"Hello Maven!"*.
 *"Re-Build"* (recompile and repackage) the resulting artifact:
 
 ```sh
-mvn clean compile package               # clean the project (remove 'target') and re-build
-mvn clean package                       # shorter form (package performs compile, if not compiled)
+mvn clean compile package           # clean the project (remove 'target') and re-build
+mvn clean package                   # shorter form (package performs compile, if not compiled)
+
+ls -la target/*.jar
+```
+```
+-rw-r--r-- 1 svgr2 Kein 2751 Oct 16 22:03 target/my-app-1.0-SNAPSHOT.jar
+```
+
+The *.jar* includes the compiled class *App.class*:
+
+```sh
+jar tfv target/my-app-1.0-SNAPSHOT.jar
+```
+
+Output shows the packaged content of the *.jar* file:
+
+```
+     0 Thu Oct 16 22:14:14 CEST 2025 META-INF/
+   116 Thu Oct 16 22:14:14 CEST 2025 META-INF/MANIFEST.MF
+     0 Thu Oct 16 22:14:12 CEST 2025 com/
+     0 Thu Oct 16 22:14:12 CEST 2025 com/mycompany/
+     0 Thu Oct 16 22:14:12 CEST 2025 com/mycompany/app/
+     0 Thu Oct 16 22:14:14 CEST 2025 META-INF/maven/
+     0 Thu Oct 16 22:14:14 CEST 2025 META-INF/maven/com.mycompany.app/
+     0 Thu Oct 16 22:14:14 CEST 2025 META-INF/maven/com.mycompany.app/my-app/
+   549 Thu Oct 16 22:14:12 CEST 2025 com/mycompany/app/App.class
+  3659 Thu Oct 16 22:14:00 CEST 2025 META-INF/maven/com.mycompany.app/my-app/pom.xml
+    68 Thu Oct 16 22:14:14 CEST 2025 META-INF/maven/com.mycompany.app/my-app/pom.properties
 ```
 
 Run the resulting *.jar* as a stand-alone program:
@@ -278,103 +383,191 @@ An error occurs.:
 no main manifest attribute, in target/my-app-1.0-SNAPSHOT.jar
 ```
 
-Google the problem or ask your AI how to solve the problem. You may also find hints
+Google the problem or ask your AI how to solve the problem. Some hints are
 [*here*](https://stackoverflow.com/questions/9689793/cant-execute-jar-file-no-main-manifest-attribute).
+
+Answer questions:
+
+1. What is the *MANIFEST* file for?
+
+1. Where is it?
+
+1. How can the prblem be solved?
+
+Inspect the *MANIFEST* file that is currently packaged in the *.jar*:
+
+```sh
+jar xf target/my-app-1.0-SNAPSHOT.jar META-INF/MANIFEST.MF &&
+    cat META-INF/MANIFEST.MF &&
+    rm -rf META-INF
+```
+
+Outout is the content of file *MANIFEST.MF* packaged in the *.jar*:
+
+```
+Manifest-Version: 1.0
+Created-By: Maven JAR Plugin 3.4.2
+Build-Jdk-Spec: 21
+```
 
 <!-- 
 # adjust <mainClass> to: com.mycompany.app.App
-<plugin>
-    <artifactId>maven-jar-plugin</artifactId>
-    <version>3.4.2</version>
-    <!-- insert begin -- >
-    <configuration>
-        <archive>
-        <manifest>
-            <addClasspath>true</addClasspath>
-            <classpathPrefix>lib/</classpathPrefix>
-            <mainClass>com.mycompany.app.App</mainClass>
-        </manifest>
-        </archive>
-    </configuration>
-    <!-- insert end -- >
-</plugin>
+# install under <build>:
+<build>
+  <pluginManagement>
+    ...
+  </pluginManagement>
+  <plugins>
+    <plugin>
+      <artifactId>maven-jar-plugin</artifactId>
+      <version>3.4.2</version>
+      <configuration>
+          <archive>
+          <manifest>
+              <addClasspath>true</addClasspath>
+              <classpathPrefix>lib/</classpathPrefix>
+              <mainClass>com.mycompany.app.App</mainClass>
+          </manifest>
+          </archive>
+      </configuration>
+    </plugin>
+  </plugins>
+</build>
 # 
 # create patch file:    diff -Naru pom_orig.xml pom.xml > pom.patch
 # apply patch:          patch pom.xml < pom.patch
  -->
 
-Fix the problem, re-build and re-run:
+Fix the problem following the advice from the article, re-build, re-package
+and re-run the program:
 
 ```sh
-mvn clean package                               # re-build the program
+mvn clean package                               # clean rebuild and package
 
 java -jar target/my-app-1.0-SNAPSHOT.jar        # re-run
 ```
-```sh
-Hello Maven!                                    # corect output
+
+The *.jar* file is now executable *"stand-alone"*:
+
+```
+Hello World!
 ```
 
+Check that *MANIFEST.MF* now includes the main-class:
+
+```sh
+jar xf target/my-app-1.0-SNAPSHOT.jar META-INF/MANIFEST.MF &&
+    cat META-INF/MANIFEST.MF &&
+    rm -rf META-INF
+```
+
+Outout is the content of file *MANIFEST.MF* packaged in the *.jar*:
+
+```
+Manifest-Version: 1.0
+Created-By: Maven JAR Plugin 3.4.2
+Build-Jdk-Spec: 21
+Main-Class: com.mycompany.app.App           <-- main class is now present
+```
+
+
+<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
 
 
 &nbsp;
 
 ## 6. Check Project Into a Local *git* Repository
 
-Create a local *git* repository with an empty root commit (to create clean branches).
+Create a local *git* repository with an empty root commit. It is useful to have an
+empty root commit on a repository to be able to create branches off the root commit
+that contain nothing.
 
-Next, commit a [*.gitignore*](https://github.com/sgra64/se1-play/blob/main/.gitignore)
-file to the `main` branch.
+1. Next, create [*.gitignore*](https://github.com/sgra64/se1-play/blob/main/.gitignore)
+    and commit to the *main* branch.
 
-Then, commit `pom.xml` and sources to the `main` branch.
-Remove unwanted content: `git clean -fd`.
+1. Then, commit *pom.xml* and *src*.
 
-The project directory should now contain:
+1. Remove unwanted content: `git clean -fd`.
+
+Show the *commit log* and make sure it has proper messages. Change if commit
+messages don't match:
+
+```
+530de68 (HEAD -> main) add pom.xml, src
+96b05a4 add .gitignore
+02082e3 (tag: root) root commit (empty)
+```
+
+Test commits contain the correct files.
+
+Test the first commit after the root commit (id: *96b05a4* - you may adjust the
+id):
 
 ```sh
-ls -la                                          # show project directory
+# compare two commits specified by their 'id'
+git diff 02082e3..96b05a4 --name-status
+
+# compare two commits relative from 'HEAD'
+git diff HEAD~2..HEAD~1 --name-status
+
+# show files that have been changed in the specified commit
+git diff-tree --no-commit-id --name-only -r 530de68
 ```
 ```
-total 21
-drwxr-xr-x 1 svgr2 Kein    0 Apr  9 12:25 .
-drwxr-xr-x 1 svgr2 Kein    0 Apr  9 12:15 ..
--rw-r--r-- 1 svgr2 Kein  499 Apr  9 12:25 .classpath
-drwxr-xr-x 1 svgr2 Kein    0 Apr  9 12:25 .git
--rw-r--r-- 1 svgr2 Kein 1331 Apr  9 12:13 .gitignore
--rw-r--r-- 1 svgr2 Kein 3511 Apr  9 12:05 pom.xml
-drwxr-xr-x 1 svgr2 Kein    0 Apr  9 11:48 src
-drwxr-xr-x 1 svgr2 Kein    0 Apr  9 12:06 target
+A       .gitignore      <-- '.gitignore' was added in commit '96b05a4'
 ```
 
-The local *git* repository should contain three commits on the `main` branch:
+Repeat for the last commit:
 
-```sh
-git log --oneline                               # show commit log
 ```
-```
-1b0d048 (HEAD -> main) add pom.xml src
-da96b73 add .gitignore
-b5d633b (tag: root) root commit (empty)
+A       pom.xml
+A       src/main/java/com/mycompany/app/App.java
+A       src/test/java/com/mycompany/app/AppTest.java
 ```
 
 
+<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
 
 &nbsp;
 
 ## 7. *Factorizer.java*
 
-Create a feature-branch: `factorizer` and modify the program such that it accepts
-numbers passed through the command line and outputs the prime factors of these numbers:
+Create a feature-branch: `factorizer` and make sure *you are* on the new branch:
+
+```sh
+git branch -avv             # show branches
+```
+```
+* factorizer 530de68 add pom.xml, src       <-- * marks the currently active branch
+  main       530de68 add pom.xml, src
+```
+
+The commit log also shows the new branch *factorizer* that it currently pointing
+to the last commit of the *main* branch:
+
+```sh
+git log --oneline
+```
+
+Branches *factorizer* and *main* point to the same commit.
+HEAD points to *factorizer*:
+
+```
+530de68 (HEAD -> factorizer, main) add pom.xml, src
+96b05a4 add .gitignore
+02082e3 (tag: root) root commit (empty)
+```
+
+Modify class *App.java* such the it accepts numbers from the command line and
+outputs the prime factors of these numbers.
 
 ```sh
 export CLASSPATH="target/classes"
 
 java com.mycompany.app.App 3 27 1092 65536 10952347 100000039
 ```
-
-After implementation, output shows factors of `n` and an indicator of prime numbers:
-
 ```
-Hello Factors!
+Hello Factorizer!
  - n=3 -> [3] (prime number)
  - n=27 -> [3, 3, 3]
  - n=1092 -> [2, 2, 3, 7, 13]
@@ -385,7 +578,8 @@ Hello Factors!
 
 &nbsp;
 
-Create a **Component:** `Factorizer` that consists of:
+Create a `Factorizer` *component*. Remember the properties of a Java component
+implementation. A component implementation has:
 
 - a public interface `Factorizer.java` and
 
@@ -438,16 +632,41 @@ public interface Factorizer {
 }
 ```
 
-Test your implementation such that it produces the desired output:
+Implementation class *FactorizerImpl.java* has a method: *run(String[] args)*
+that receives the *args* when class *App.java* runs.
+
+Be ambitious and process *args* as a Java stream:
+
+```java
+@Override
+public void run(String[] args) {
+    Stream.of(args)
+        .forEach(f -> {
+            System.out.println(
+                String.format(" - n=%d -> %s%s", 0, List.of(), " (isPrime)"));
+        });
+}
+```
+
+Test implementation with this *run()* function:
 
 ```sh
 java com.mycompany.app.App 3 27 1092 65536 10952347 100000039
 ```
+```
+Hello Factorizer!
+ - n=0 -> [] (isPrime)
+ - n=0 -> [] (isPrime)
+ - n=0 -> [] (isPrime)
+ - n=0 -> [] (isPrime)
+ - n=0 -> [] (isPrime)
+ - n=0 -> [] (isPrime)
+```
 
-Output should now show correct factors of `n` and the indicator of prime numbers:
+Complete the implementation such that the program produces the correct output:
 
 ```
-Hello Factors!
+Hello Factorizer!
  - n=3 -> [3] (prime number)
  - n=27 -> [3, 3, 3]
  - n=1092 -> [2, 2, 3, 7, 13]
@@ -456,28 +675,115 @@ Hello Factors!
  - n=100000039 -> [100000039] (prime number)
 ```
 
-Commit changes to the `factorizer` branch.
+If the program works, review the changes:
+
+```sh
+git status
+```
+```
+On branch factorizer
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+        modified:   src/main/java/com/mycompany/app/App.java
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+        src/main/java/com/mycompany/app/Factorizer.java
+        src/main/java/com/mycompany/app/FactorizerImpl.java
+```
+
+Compare changes made to file *App.java*:
+
+```sh
+git diff src/main/java/com/mycompany/app/App.java
+```
+```diff
+diff --git a/src/main/java/com/mycompany/app/App.java b/src/main/java/com/mycompany/app/App.java
+index 735f1e0..1935c12 100644
+--- a/src/main/java/com/mycompany/app/App.java
++++ b/src/main/java/com/mycompany/app/App.java
+@@ -5,6 +5,9 @@ package com.mycompany.app;
+  */
+ public class App {
+     public static void main(String[] args) {
+-        System.out.println("Hello World!");
++        System.out.println("Hello Factorizer!");
++        // 
++        Factorizer factorizer = Factorizer.getInstance();
++        factorizer.run(args);
+    }
+}
+```
+
+If everything looks good, commit to the `factorizer` branch. Make sure the
+commit line matches:
 
 ```sh
 git log --oneline                               # show commit log
 ```
 ```
-2a606d3 (HEAD -> factorizer) add Factorizer.java    <-- 'factorizer' branch
-1b0d048 (main) add pom.xml src                      <-- 'main' branch
-da96b73 add .gitignore
-b5d633b (tag: root) root commit (empty)
+83534b9 (HEAD -> factorizer) factorizer implementation completed
+530de68 (main) add pom.xml, src                 <-- main branch
+96b05a4 add .gitignore
+02082e3 (tag: root) root commit (empty)
+```
+
+Show the files that comprise that commit:
+
+```sh
+git diff-tree --name-only -r HEAD
+```
+```
+83534b9f22ae51d0d48c96b0571f93e19fc805d3
+src/main/java/com/mycompany/app/App.java
+src/main/java/com/mycompany/app/Factorizer.java
+src/main/java/com/mycompany/app/FactorizerImpl.java
 ```
 
 
+<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
 
 &nbsp;
 
 ## 8. Refactor the Package Structure
 
-The current package structure: `com.mycompany.app` comes from the initial *maven* project
-setup.
+Remember what
+[*Refactoring*](https://refactoring.guru/refactoring)
+is in Software Engineering.
 
-Refactor this structure in the feature-branch to: `de.factorizer`
+[*Martin Fowler*](https://martinfowler.com/)
+has written a book on the topic with *Kent Beck*:
+*"Refactoring, Improving the Design of Existing Code (2nd Edition)"*,
+Addison-Wesley (2018).
+
+The current package structure: `com.mycompany.app` comes from the initial
+*maven* project setup.
+
+Refactor this structure on branch factorizer to: `de.factorizer`
+
+Consider the impact this refactoring will have:
+
+- in *pom.xml*, write down the new [*GAV*]()
+    coordinates for *groupId*, *artifactId* and version (same).
+
+- to Java source files under: *src/main/java/com/mycompany*,
+
+- to Java test files under: *src/test/java/com/mycompany*.
+
+Make sure you start from a *"clean working tree"* such that you can reset to
+the commit with a properly working program:
+
+```sh
+git status
+```
+```
+On branch factorizer
+nothing to commit, working tree clean
+``
+
+Perform the changes starting with *pom.xml* and then for *source* and
+*test* paths.
 
 Rebuild the project and re-run:
 
@@ -485,7 +791,7 @@ Rebuild the project and re-run:
 java de.factorizer.App 3 27 1092 65536 10952347 100000039
 ```
 
-Output:
+With proper refactoring, output will appear:
 
 ```
 Hello Factors!
@@ -497,10 +803,11 @@ Hello Factors!
  - n=100000039 -> [100000039] (prime number)
 ```
 
-The structure of the `src` tree after refactoring is:
+The structure of `src` and `target` reflect the refactoring:
 
 ```sh
-find src                    # show 'src' structure after refactoring
+find src                    # show the 'src' structure after refactoring
+find target                 # show the 'target' structure after refactoring
 ```
 ```
 src
@@ -510,14 +817,34 @@ src/main/java/de
 src/main/java/de/factorizer
 src/main/java/de/factorizer/App.java
 src/main/java/de/factorizer/Factorizer.java
+src/main/java/de/factorizer/FactorizerImpl.java
 src/test
 src/test/java
 src/test/java/de
 src/test/java/de/factorizer
 src/test/java/de/factorizer/AppTest.java
 ```
+```
+target
+target/classes
+target/classes/de
+target/classes/de/factorizer
+target/classes/de/factorizer/App.class
+target/classes/de/factorizer/Factorizer.class
+target/classes/de/factorizer/FactorizerImpl$Factors.class
+target/classes/de/factorizer/FactorizerImpl.class
+target/generated-sources
+target/generated-sources/annotations
+target/maven-status
+target/maven-status/maven-compiler-plugin
+target/maven-status/maven-compiler-plugin/compile
+target/maven-status/maven-compiler-plugin/compile/default-compile
+target/maven-status/maven-compiler-plugin/compile/default-compile/createdFiles.lst
+target/maven-status/maven-compiler-plugin/compile/default-compile/inputFiles.lst
+```
 
-Show the impact of the refactoring on modified files:
+Show the impact of the refactoring had on modified files
+(*"refactoring footprint"*):
 
 ```sh
 git status                  # show new and modified files
@@ -530,6 +857,7 @@ Changes not staged for commit:
         modified:   pom.xml
         deleted:    src/main/java/com/mycompany/app/App.java
         deleted:    src/main/java/com/mycompany/app/Factorizer.java
+        deleted:    src/main/java/com/mycompany/app/FactorizerImpl.java
         deleted:    src/test/java/com/mycompany/app/AppTest.java
 
 Untracked files:
@@ -543,21 +871,91 @@ no changes added to commit (use "git add" and/or "git commit -a")
 Commit the changes to the `factorizer` branch and show the commit log:
 
 ```sh
-git log --oneline                       # show commit log
+git log --oneline           # show the commit log
 ```
 ```
-2c4f957 (HEAD -> factorizer) refactoring to 'de.factorize' structure
-2a606d3 add Factorizer.java
-1b0d048 (main) add pom.xml src                      <-- 'main' branch
-da96b73 add .gitignore
-b5d633b (tag: root) root commit (empty)
+c25e65f (HEAD -> factorizer) refactoring to 'de.factorize'
+83534b9 factorizer implementation completed
+530de68 (main) add pom.xml, src                      <-- 'main' branch
+96b05a4 add .gitignore
+02082e3 (tag: root) root commit (empty)
+```
+
+Build and run the *.jar*:
+
+```sh
+mvn clean package           # clean build and package .jar
+
+ls -la target/*.jar         # show .jar file
+```
+```
+-rw-r--r-- 1 svgr2 Kein 6327 Oct 17 00:09 target/factorizer-1.0-SNAPSHOT.jar
+```
+
+Run the *.jar*:
+
+```sh
+java -jar target/factorizer-1.0-SNAPSHOT.jar 3 27 1092 65536 10952347 100000039
+```
+```
+Error: Could not find or load main class com.mycompany.app.App
+Caused by: java.lang.ClassNotFoundException: com.mycompany.app.App
+```
+
+- What is the cause of this error?
+
+- How can it be fixed?
+
+Fix the problem, re-build and re-run:
+
+```sh
+java -jar target/factorizer-1.0-SNAPSHOT.jar 3 27 1092 65536 10952347 100000039
+```
+
+The *.jar* is now also working:
+
+```
+Hello Factorizer!
+ - n=3 -> [3] (prime number)
+ - n=27 -> [3, 3, 3]
+ - n=1092 -> [2, 2, 3, 7, 13]
+ - n=65536 -> [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]
+ - n=10952347 -> [7, 23, 59, 1153]
+ - n=100000039 -> [100000039] (prime number)
+```
+
+Unfortunately, we missed the *"bug"* for properly building the *.jar* for
+committing the refactoring.
+
+- Can a commit be *"fixed"* (altered, changed, updated) after it was made?
+
+- What can be done to include the fix in the *factorizer* branch?
+
+- Can the buggy commit be removed and replaced with the proper one?
+
+- What are conditions for that?
+
+Try to remove the buggy commit and replace with proper one.
+
+After replacement, the proper commit should appear in the commit log:
+
+```sh
+git log --oneline
+```
+```
+86aecee (HEAD -> factorizer) refactoring to 'de.factorize' (jar working)
+83534b9 factorizer implementation completed
+530de68 (main) add pom.xml, src
+96b05a4 add .gitignore
+02082e3 (tag: root) root commit (empty)
 ```
 
 
+<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
 
 &nbsp;
 
-## 9. JUnit Tests
+## 9. Unit Tests
 
 Create JUnit tests for method: `factorize(int n)` that test:
 
@@ -638,32 +1036,124 @@ mvn test                                # run JUnit tests
 [INFO] ------------------------------------------------------------------------
 ```
 
-Commit tests to the `factorizer` branch:
+Run tests also in your IDE:
+
+
+<img src="https://raw.githubusercontent.com/sgra64/mvn-fun/refs/heads/markup/img/vscode-tests.png" width="1200"/>
+
+
+&nbsp;
+
+When everything works, commit tests to the `factorizer` branch:
 
 ```sh
 git log --oneline                       # show commit log
 ```
 ```
-fc9b7e5 (HEAD -> factorizer) add tests FactorizerTests.java
-2c4f957 refactoring to 'de.factorize' structure
-2a606d3 add Factorizer.java
-1b0d048 (main) add pom.xml src                      <-- 'main' branch
-da96b73 add .gitignore
-b5d633b (tag: root) root commit (empty)
+19c8646 (HEAD -> factorizer) add unit tests: FactorizerTests.java
+86aecee refactoring to 'de.factorize' (with jar working)
+83534b9 factorizer implementation completed
+530de68 (main) add pom.xml, src                      <-- 'main' branch
+96b05a4 add .gitignore
+02082e3 (tag: root) root commit (empty)
 ```
 
+The *maven*
+[*Surefire Report Plugin*](https://maven.apache.org/surefire/maven-surefire-report-plugin/)
+creates test reports.
 
+Create test reports in `target/surefire-reports` (*.txt, *.xml) and
+`target/site` (HTML):
+
+```sh
+mvn site -DgenerateReports=false        # generate .css
+mvn surefire-report:report              # generate test reports under 'target/surefire-reports'
+
+# show test-report
+cat cat target/surefire-reports/de.factorizer.FactorizerTests.txt
+```
+```
+-------------------------------------------------------------------------------
+Test set: de.factorizer.FactorizerTests
+-------------------------------------------------------------------------------
+Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.047 s -- in de.factorizer.FactorizerTests
+```
+
+Open the HTML test report in a browser (if you don't have or cannot invoke *chrome* as command,
+open avweb-browser and navigate to the *.html* file):
+
+```sh
+chrome target/site/surefire-report.html
+```
+
+<img src="https://raw.githubusercontent.com/sgra64/mvn-fun/refs/heads/markup/img/test-report-clean.png" width="600"/>
+
+[*Test report*](https://raw.githubusercontent.com/sgra64/mvn-fun/refs/heads/markup/img/test-report-error.png)
+with a failed *test100*.
+
+
+<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
 
 &nbsp;
 
-## 10. Release
+## 10. *Javadoc*
 
-Create a *release*-branch off the *main*-branch:
+*Javadoc* is *Java's* documentation method and toolset based on
+[*Java doc strings*](https://de.wikipedia.org/wiki/Javadoc)
+that are included in Java comments.
+
+The `javadoc` compiler parses `.java` files and "*compiles*" HTML documentation
+from *Java doc strings*.
+
+Invoke the `javadoc` compiler:
+
+```sh
+javadoc -d target/docs -Xdoclint:-missing $(find src/main/java -name '*.java')
+```
+```
+Loading source file src\main\java\de\factorizer\App.java...
+Loading source file src\main\java\de\factorizer\Factorizer.java...
+Loading source file src\main\java\de\factorizer\FactorizerImpl.java...
+Constructing Javadoc information...
+Creating destination directory: "target/docs\"
+Building index for all the packages and classes...
+Standard Doclet version 21+35-LTS-2513
+Building tree for all the packages and classes...
+Generating target\docs\de\factorizer\App.html...
+Generating target\docs\de\factorizer\Factorizer.html...
+Generating target\docs\de\factorizer\package-summary.html...
+Generating target\docs\de\factorizer\package-tree.html...
+Generating target\docs\overview-tree.html...
+Building index for all classes...
+Generating target\docs\allclasses-index.html...
+Generating target\docs\allpackages-index.html...
+Generating target\docs\index-all.html...
+Generating target\docs\search.html...
+Generating target\docs\index.html...
+Generating target\docs\help-doc.html...
+```
+
+Open the HTML in a browser:
+
+```sh
+chrome target/docs/index.html
+```
+
+<img src="https://raw.githubusercontent.com/sgra64/mvn-fun/refs/heads/markup/img/javadoc-factorizer.png" width="600"/>
+
+
+<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+
+&nbsp;
+
+## 11. Release
+
+Create a *release*-branch off the *main*-branch (not branch *factorizer*):
 
 ```sh
 git switch main                         # switch to 'main' branch
 
-git checkout -b release                 # branch new 'release' branch off the 'main' branch
+git switch -c release                   # branch new 'release' branch off the 'main' branch
 
 git branch                              # show branches
 ```
@@ -682,8 +1172,8 @@ Show the current content of the `release` branch:
 find src                                # show content of the `release` branch
 ```
 
-The release branch has structure of the main branch with packages `com.mycompany`
-and there are no `Factorizer` and `FactorizerTests` classes:
+The release branch has the structure of the main branch with packages `com.mycompany`.
+There are no `Factorizer` and `FactorizerTests` classes:
 
 ```
 src
@@ -707,7 +1197,7 @@ Run the program:
 java com.mycompany.app.App 3 27 1092 65536 10952347 100000039
 ```
 
-Output shows factorization:
+Output shows no factorization:
 
 ```
 Hello world!
@@ -723,15 +1213,15 @@ Commit the change to the *release*-branch:
 
 ```sh
 git add .
-git commit -m "update pom.xml with RELEASE-1.0.0 version"
+git commit -m "update pom.xml with version 'RELEASE-1.0.0'"
 
 git log --oneline           # show new commit on 'release' branch
 ```
 ```
-62ea783 (HEAD -> release) update pom.xml with RELEASE-1.0.0 version
-1b0d048 (main) add pom.xml src
-da96b73 add .gitignore
-b5d633b (tag: root) root commit (empty)
+fc49946 (HEAD -> release) update pom.xml with version 'RELEASE-1.0.0'
+530de68 (main) add pom.xml, src
+96b05a4 add .gitignore
+02082e3 (tag: root) root commit (empty)
 ```
 
 
@@ -750,7 +1240,6 @@ You will likely see merge conflicts:
 ```
 Auto-merging pom.xml
 CONFLICT (content): Merge conflict in pom.xml
-Squash commit -- not updating HEAD
 Automatic merge failed; fix conflicts and then commit the result.
 ```
 
@@ -761,37 +1250,49 @@ git status                  # show the status of the open merge
 ```
 ```
 On branch release
+You have unmerged paths.
+  (fix conflicts and run "git commit")
+  (use "git merge --abort" to abort the merge)
+
 Changes to be committed:
-  (use "git restore --staged <file>..." to unstage)
         deleted:    src/main/java/com/mycompany/app/App.java
         new file:   src/main/java/de/factorizer/App.java
         new file:   src/main/java/de/factorizer/Factorizer.java
         new file:   src/main/java/de/factorizer/FactorizerImpl.java
-        renamed:    src/test/java/com/mycompany/app/AppTest.java -> src/test/jav
-a/de/factorizer/AppTest.java
+        renamed:    src/test/java/com/mycompany/app/AppTest.java -> src/test/ja
+va/de/factorizer/AppTest.java
         new file:   src/test/java/de/factorizer/FactorizerTests.java
 
 Unmerged paths:
-  (use "git restore --staged <file>..." to unstage)
   (use "git add <file>..." to mark resolution)
         both modified:   pom.xml
 ```
 
-Make sure the code builds and runs properly before closing the open merge:
 
+&nbsp;
+
+Fix the merge conflict and re-build and re-package the application:
+
+```sh
+mvn clean package
+
+ls -la target/*.jar
+```
+```
+-rw-r--r-- 1 svgr2 Kein 6363 Oct 17 01:12 target/factorizer-RELEASE-1.0.0.jar
+```
+
+Make sure the project builds and runs properly before closing the merge:
 
 ```sh
 mvn clean compile           # clean rebuild before running the code
 
 mvn test                    # run unit tests -> BUILD SUCCESS
 
-java de.factorizer.App 3 27 1092 65536 10952347 100000039
+java -jar target/factorizer-RELEASE-1.0.0.jar 3 27 1092 65536 10952347 100000039
 ```
-
-Output:
-
 ```
-Hello Factors!
+Hello Factorizer!
  - n=3 -> [3] (prime number)
  - n=27 -> [3, 3, 3]
  - n=1092 -> [2, 2, 3, 7, 13]
@@ -800,12 +1301,13 @@ Hello Factors!
  - n=100000039 -> [100000039] (prime number)
 ```
 
-Close (commit) the merge with: `merge branch factorizer, RELEASE-1.0.0`
+Close (commit) the merge with: `merge factorizer, RELEASE-1.0.0`
 and show status and commit log:
 
 ```sh
 git status                          # show the status of the open merge
-
+```
+```
 On branch release                   # working tree is clean
 nothing to commit, working tree clean
 ```
@@ -813,22 +1315,20 @@ nothing to commit, working tree clean
 ```sh
 git log --oneline --all --graph     # show commit log with branch-graph
 ```
+```
+*   8b4f4e0 (HEAD -> release) merge factorizer, RELEASE-1.0.0
+|\
+| * 19c8646 (factorizer) add unit tests: FactorizerTests.java
+| * 86aecee refactoring to 'de.factorize' (with jar working)
+| * 83534b9 factorizer implementation completed
+* | fc49946 update pom.xml with version 'RELEASE-1.0.0'
+|/
+* 530de68 (main) add pom.xml, src
+* 96b05a4 add .gitignore
+* 02082e3 (tag: root) root commit (empty)
+```
 
 <img src="https://raw.githubusercontent.com/sgra64/mvn-fun/refs/heads/markup/img/git-log-after-merge.png" width="600"/>
-
-
-```
-*   4316014 (HEAD -> release) merge branch factorizer, RELEASE-1.0.0
-|\
-| * fc9b7e5 (factorizer) add tests FactorizerTests.java
-| * 2c4f957 refactoring to 'de.factorize' structure
-| * 2a606d3 add Factorizer.java
-* | 62ea783 update pom.xml with RELEASE-1.0.0 version
-|/
-* 1b0d048 (main) add pom.xml src
-* da96b73 add .gitignore
-* b5d633b (tag: root) root commit (empty)
-```
 
 
 &nbsp;
@@ -840,8 +1340,8 @@ The resulting commit graph is:
 
 &nbsp;
 
-Show the new structure after the merge with packages `de.factorizer`
-and now with `Factorizer` and `FactorizerTests` classes:
+Show the structure after the merge with packages `de.factorizer`
+and with `Factorizer` and `FactorizerTests` classes:
 
 ```sh
 find src                                # show content of the `release` branch
@@ -862,52 +1362,55 @@ src/test/java/de/factorizer/AppTest.java
 src/test/java/de/factorizer/FactorizerTests.java
 ```
 
-
-Make sure all tests pass on the *release*-branch:
-
-```sh
-mvn clean compile test                  # run JUnit tests
-```
-```
-Tests run: 3, Failures: 0, Errors: 0, Skipped: 0
-```
+Perform a final test on the *release*-branch:
 
 ```sh
-mvn clean compile test package          # re-build, test, package
+mvn clean compile test package          # clean re-build, test and package
+
+mvn site -DgenerateReports=false        # generate test report
+mvn surefire-report:report
+cat cat target/surefire-reports/de.factorizer.FactorizerTests.txt
+```
+```
+-------------------------------------------------------------------------------
+Test set: de.factorizer.FactorizerTests
+-------------------------------------------------------------------------------
+Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.047 s -- in de.factorizer.FactorizerTests
 ```
 
-Check the released artifact has properly been created:
-
-```
-ls -la target
-```
-
-A final artifact `factorizer-RELEASE-1.0.0.jar` to release has been created:
-
-```
--rw-r--r-- 1 svgr2 Kein 5825 Apr 10 22:59 factorizer-RELEASE-1.0.0.jar
-```
-
-Perform a final run with the created `.jar`:
+Open the
+[*test report*](https://raw.githubusercontent.com/sgra64/mvn-fun/refs/heads/markup/img/test-report-clean.png)
+in a browser:
 
 ```sh
-java -jar target/factorizer-RELEASE-1.0.0.jar 3 27 1092 65536 10952347 100000039
-```
-```
-Hello Factors!
- - n=3 -> [3] (prime number)
- - n=27 -> [3, 3, 3]
- - n=1092 -> [2, 2, 3, 7, 13]
- - n=65536 -> [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]
- - n=10952347 -> [7, 23, 59, 1153]
- - n=100000039 -> [100000039] (prime number)
+chrome target/site/surefire-report.html
 ```
 
+Perform a final run of the created *.jar*:
 
-Commit with message `"changed version in pom.xml to: RELEASE-1.0.0"` to the *release*-branch
-and tag the commit with `RELEASE-1.0.0`.
+```sh
+java -jar target/factorizer-RELEASE-1.0.0.jar 9 99 999 9999 4999
+```
+```
+Hello Factorizer!
+ - n=9 -> [3, 3]
+ - n=99 -> [3, 3, 11]
+ - n=999 -> [3, 3, 3, 37]
+ - n=9999 -> [3, 3, 11, 101]
+ - n=4999 -> [4999] (prime number)
+```
 
-Push branches:
+The final articact: `factorizer-RELEASE-1.0.0.jar` can now be distributed
+or pushed to an *artifact repository*:
+
+
+<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+
+&nbsp;
+
+## 12. Host Project in a Remote Repository
+
+Create a new repository: `mvn-fun` and push branches:
 
 - `main`,
 
@@ -915,11 +1418,12 @@ Push branches:
 
 - `release`
 
-to a remote repository: `mvn-fun` you can create at
-[*BHT GitLab*](https://gitlab.bht-berlin.de/)
-or another Git service such as
-[*GitHub*](https://github.com/).
+to the remote repository.
 
+Use your account at
+[*BHT GitLab*](https://gitlab.bht-berlin.de/) or
+[*GitHub*](https://github.com)
+(or another remote repository site) to host the remote repository.
 
 <!-- Results should show no errors:
 
