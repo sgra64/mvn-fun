@@ -5,7 +5,9 @@
 
 <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
 
-*Maven* is a popular build-tool for Java.
+*Maven* is a popular build-tool for Java. The *"Build Process"* transforms
+source code into an executable artifact (for Java, this is a .jar file) that
+can be released, distributed, deployed and executed.
 
 Challenges:
 
@@ -19,19 +21,23 @@ Challenges:
 
 1. [*Build a stand-alone .jar*](#5-build-a-stand-alone-jar)
 
-1. [*Check project into local git repository*](#6-check-project-into-a-local-git-repository)
+1. [*Check the project into local git repository*](#6-check-the-project-into-a-local-git-repository)
 
-1. [*Factorizer.java*](#7-factorizerjava)
+1. [Import *.vscode* as Git-Submodule](#7-import-vscode-as-git-submodule)
 
-1. [*Refactor the Package Structure*](#8-refactor-the-package-structure)
+1. [*Factorizer.java*](#8-factorizerjava)
 
-1. [*Unit Tests*](#9-unit-tests)
+1. [Refactor *GroupId* and *ArtifactId*](#9-refactor-groupid-and-artifactid)
 
-1. [*Javadoc*](#10-javadoc)
+1. [*Unit Tests*](#10-unit-tests)
 
-1. [*Release*](#11-release)
+1. [*Javadoc*](#11-javadoc)
 
-1. [*Host Project in a Remote Repository*](#12-host-project-in-a-remote-repository)
+1. [*Release*](#12-release)
+
+1. [*Build-Process* and *Continuous Integration (CI)*](#13-build-process-and-continuous-integration-ci)
+
+1. [*Host Project in a Remote Repository*](#14-host-project-in-a-remote-repository)
 
 
 <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
@@ -54,7 +60,8 @@ and answer questions with 1-3 bullets each:
 
 1. Which other build tools exist (other than *Maven*)?
 
-1. What is a *Continuous Integration (CI)* build?
+1. What is *Continuous Integration (CI)* (see: section
+    [*Build-Process* and *Continuous Integration (CI)*](#13-build-process-and-continuous-integration-ci))?
 
 1. What are *Nightly builds*?
 
@@ -99,9 +106,6 @@ echo $JAVA_HOME         # show the value of the JAVA_HOME environment variable
 
 echo $MAVEN_HOME        # show the path where maven is installed on your system
 --> /c/opt/maven
-
-echo $M2_HOME           # show the path where maven stores dependencies (.jar)
---> /c/Sven1/svgr2/tmp/svgr/.m2
 ```
 
 `cd` to a workspace to create a new *maven* project.
@@ -318,15 +322,14 @@ Show *CLASSPATH*:
 
 ```sh
 mvn dependency:build-classpath              # show CLASSPATH and write to file
-mvn dependency:build-classpath -Dmdep.outputFile=.classpath     # '.classpath'
-cat .classpath
+mvn dependency:build-classpath -Dmdep.outputFile=classpath
+cat classpath
 ```
 
 *CLASSPATH* refers to *.jar* files *maven* downloaded with dependencies
 in *pom.xml* from the
 [*Maven Repository*](https://mvnrepository.com/). *Maven* caches downloaded
-dependencies at the `M2_HOME` directory, usually under a folder `.m2`
-in the *HOME* directory.
+dependencies under a folder `.m2` in the *HOME* directory.
 
 
 <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
@@ -473,16 +476,15 @@ Main-Class: com.mycompany.app.App           <-- main class is now present
 
 <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
 
-
 &nbsp;
 
-## 6. Check Project Into a Local *git* Repository
+## 6. Check the Project Into a Local *git* Repository
 
 Create a local *git* repository with an empty root commit. It is useful to have an
 empty root commit on a repository to be able to create branches off the root commit
 that contain nothing.
 
-1. Next, create [*.gitignore*](https://github.com/sgra64/se1-play/blob/main/.gitignore)
+1. Next, create [*.gitignore*](https://github.com/sgra64/mvn-fun/blob/main/.gitignore)
     and commit to the *main* branch.
 
 1. Then, commit *pom.xml* and *src*.
@@ -530,16 +532,234 @@ A       src/test/java/com/mycompany/app/AppTest.java
 
 &nbsp;
 
-## 7. *Factorizer.java*
+## 7. Import *.vscode* as Git-Submodule
 
-Create a feature-branch: `factorizer` and make sure *you are* on the new branch:
+[*Git Submodules*](https://git-scm.com/docs/git-submodule)
+(read the: [*article*](https://www.freecodecamp.org/news/how-to-use-git-submodules/))
+is a mechanism to import content into a project that is maintained outside by
+other people/teams in separate *git* repositories .
+
+Git submodules should be imported and maintained on a separate branch *"git-modules"*,
+which we create off the *"add .gitignore"* commit of the *main* branch:
+
+```sh
+git log --oneline                   # show commit log
+```
+```
+c319e7c (HEAD -> main) add pom.xml, src
+841895e add .gitignore                      <-- base new branch 'git-modules' here
+368b85b (tag: root) root commit (empty)
+```
+
+```sh
+git switch -c git-modules 841895e   # use commit-id as base of the new branch
+                                    # make sure to use the id from your commit-log
+
+git branch              # show branches that currently exist in the git repository
+```
+```
+* git-modules           <-- new branch 'git-modules' is the active branch (green, plus: '*')
+  main
+```
+
+The `*` marks the branch that is currently active, which means that this branch
+will receive the following commits.
+
+Show the commit-log of the new branch:
+
+```sh
+git log --oneline                   # show commit log
+```
+```
+841895e (HEAD -> git-modules) add .gitignore    <-- HEAD is at 'git-modules'
+368b85b (tag: root) root commit (empty)
+```
+
+Since the commit of file *.gitignore* is the base of the new branch, the
+*.gitignore* file is part of the working-tree (the state of the project
+directory) of the new branch.
+
+We import *submodule*
+[*gitmodule-vscode-mvn-fun*](https://github.com/sgra64/gitmodule-vscode-mvn-fun)
+into the project.
+*Git-modules* are imported from remote repositories, where their content is
+maintained, with the *git submodules add* command.
+
+After import, the *git-submodule* is committed to the *git-modules* branch:
+
+```sh
+# import submodule '.vscode' from the remote 'gitmodule-vscode-java.git' repository
+git submodule add -f -- https://github.com/sgra64/gitmodule-vscode-mvn-fun .vscode
+```
+```
+Cloning into 'C:/Sven1/svgr2/workspaces/2-SE/my-app/.vscode'...
+remote: Enumerating objects: 9, done.
+remote: Counting objects: 100% (9/9), done.
+remote: Compressing objects: 100% (8/8), done.
+remote: Total 9 (delta 0), reused 9 (delta 0), pack-reused 0 (from 0)
+Receiving objects: 100% (9/9), done.
+```
+
+A new folder `.vscode` and a new file `.gitmodules` have been created in the
+project directory:
+
+```sh
+ls -la                      # show new content of the 'se1-play' project directory
+```
+```
+total 29
+drwxr-xr-x 1 svgr2 Kein    0 Oct 23 21:54 .
+drwxr-xr-x 1 svgr2 Kein    0 Oct 19 11:54 ..
+drwxr-xr-x 1 svgr2 Kein    0 Oct 23 21:54 .git
+-rw-r--r-- 1 svgr2 Kein 1053 Oct 23 21:49 .gitignore
+-rw-r--r-- 1 svgr2 Kein   96 Oct 23 21:54 .gitmodules   <-- new '.gitmodules' file
+drwxr-xr-x 1 svgr2 Kein    0 Oct 19 11:54 .mvn
+drwxr-xr-x 1 svgr2 Kein    0 Oct 23 21:54 .vscode       <-- new submodule '.vscode'
+```
+
+Show the `.gitmodules` file:
+
+```sh
+cat .gitmodules             # show content of the '.gitmodules' file
+```
+```
+[submodule ".vscode"]
+        path = .vscode
+        url = https://github.com/sgra64/gitmodule-vscode-mvn-fun
+```
+
+Commit the sub-module to branch *git-modules:*
+
+```sh
+git commit -m "add git submodule: '.vscode', add .gitmodules"
+```
+
+The commit-log shows three commits:
+
+```sh
+git log --oneline           # show commit log
+```
+```
+7024af9 (HEAD -> git-modules) add git submodule: '.vscode', add .gitmodules
+841895e add .gitignore
+368b85b (tag: root) root commit (empty)
+```
+
+Test that *git-modules* have properly been registered:
+
+```sh
+git submodule               # list registered sub-modules
+```
+```
+ 7e94a8c9541506c3deb5a361e45088451589aa63 .vscode (heads/main)
+```
+
+Check updates that may have been published. Git will enter each *sub-module*
+and invoke *git pull* asking for updates from the associated remote
+repository:
+
+```sh
+git submodule foreach git pull
+```
+```
+Entering '.env'
+Already up to date.
+```
+
+Check for modifications in *sub-modules*:
+
+```sh
+git submodule foreach git status
+```
+```
+Entering '.vscode'
+On branch main
+Your branch is up to date with 'origin/main'.
+
+nothing to commit, working tree clean
+```
+
+Switch back to the *main* branch:
+
+```sh
+git switch main             # switch back to the main branch
+```
+
+Accept the warning:
+
+```
+warning: unable to rmdir '.vscode': Directory not empty
+Switched to branch 'main'
+```
+
+The current branch is *main*:
+
+```sh
+git branch                  # show current branch
+```
+```
+  git-modules
+* main                      <-- 'main' is the active branch (*)
+```
+
+Check-out and commit the *.gitmodules* file from the *git-modules* branch:
+
+```sh
+git checkout git-modules -- .gitmodules     # check-out '.gitmodules' from branch 'git-modules'
+git commit -m "add .git-modules"            # commit with message: "add .git-modules"
+```
+
+The commit log now shows three commits:
+
+```sh
+git log --oneline           # show commit log
+```
+```
+c787b3e (HEAD -> main) add .git-modules
+c319e7c add pom.xml, src
+841895e add .gitignore
+368b85b (tag: root) root commit (empty)
+```
+
+The *.vscode* directory is visible on branch *main* containing
+*VSCode* settings:
+
+```sh
+ls -la .vscode              # show content of '.vscode'
+```
+```
+total 30
+drwxr-xr-x 1 svgr2 Kein    0 Oct 18 01:44 .
+drwxr-xr-x 1 svgr2 Kein    0 Oct 18 01:52 ..
+-rw-r--r-- 1 svgr2 Kein   32 Oct 18 01:44 .git
+-rw-r--r-- 1 svgr2 Kein   23 Oct 18 01:44 .gitignore
+-rw-r--r-- 1 svgr2 Kein 1296 Oct 18 01:44 launch.json           <-- 'Run&Debug' launches
+-rw-r--r-- 1 svgr2 Kein   57 Oct 18 02:02 launch-coderunner     <-- Code Runner launch
+-rw-r--r-- 1 svgr2 Kein  896 Oct 18 01:44 launch-terminal.sh    <-- launch script for VSCode terminal
+-rw-r--r-- 1 svgr2 Kein 3467 Oct 18 01:44 settings.json         <-- VSCode project settings file
+```
+
+[*VSCode Code Runner*](https://marketplace.visualstudio.com/items?itemName=formulahendry.code-runner)
+for *Java*cd is a useful extension to install in *VSCode*.
+`<Ctrl> + <Alt> + <N>` quickly launches the program specified in file: *.vscode/launch-coderunner*,
+which is helpful for development.
+
+
+<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+
+&nbsp;
+
+## 8. *Factorizer.java*
+
+Create a new branch: `factorizer` and make sure you are on the new branch:
 
 ```sh
 git branch -avv             # show branches
 ```
 ```
 * factorizer 530de68 add pom.xml, src       <-- * marks the currently active branch
-  main       530de68 add pom.xml, src
+  git-modules 7024af9 add git submodule: '.vscode', add .gitmodules
+  main       c787b3e add .git-modules
 ```
 
 The commit log also shows the new branch *factorizer* that it currently pointing
@@ -553,7 +773,8 @@ Branches *factorizer* and *main* point to the same commit.
 HEAD points to *factorizer*:
 
 ```
-530de68 (HEAD -> factorizer, main) add pom.xml, src
+c787b3e (HEAD -> factorizer, main) add .git-modules
+530de68 add pom.xml, src
 96b05a4 add .gitignore
 02082e3 (tag: root) root commit (empty)
 ```
@@ -635,8 +856,6 @@ public interface Factorizer {
 Implementation class *FactorizerImpl.java* has a method: *run(String[] args)*
 that receives the *args* when class *App.java* runs.
 
-Be ambitious and process *args* as a Java stream:
-
 ```java
 @Override
 public void run(String[] args) {
@@ -648,7 +867,7 @@ public void run(String[] args) {
 }
 ```
 
-Test implementation with this *run()* function:
+Test the implementation with this *run()* function:
 
 ```sh
 java com.mycompany.app.App 3 27 1092 65536 10952347 100000039
@@ -663,7 +882,14 @@ Hello Factorizer!
  - n=0 -> [] (isPrime)
 ```
 
-Complete the implementation such that the program produces the correct output:
+
+&nbsp;
+
+Understand the code and implement processing in *run()* as *Java stream*:
+
+<img src="https://raw.githubusercontent.com/sgra64/mvn-fun/refs/heads/markup/img/process-args-as-stream.png" width="800"/>
+
+After completion, the program should produce the correct output:
 
 ```
 Hello Factorizer!
@@ -675,7 +901,7 @@ Hello Factorizer!
  - n=100000039 -> [100000039] (prime number)
 ```
 
-If the program works, review the changes:
+Review changes when the program is working:
 
 ```sh
 git status
@@ -716,17 +942,17 @@ index 735f1e0..1935c12 100644
 }
 ```
 
-If everything looks good, commit to the `factorizer` branch. Make sure the
-commit line matches:
+If everything looks good, commit the development to the `factorizer` branch.
 
 ```sh
 git log --oneline                               # show commit log
 ```
 ```
 83534b9 (HEAD -> factorizer) factorizer implementation completed
-530de68 (main) add pom.xml, src                 <-- main branch
-96b05a4 add .gitignore
-02082e3 (tag: root) root commit (empty)
+c787b3e (main) add .git-modules                 <-- branch 'main' is here
+c319e7c add pom.xml, src
+841895e add .gitignore
+368b85b (tag: root) root commit (empty)
 ```
 
 Show the files that comprise that commit:
@@ -746,7 +972,7 @@ src/main/java/com/mycompany/app/FactorizerImpl.java
 
 &nbsp;
 
-## 8. Refactor the Package Structure
+## 9. Refactor *GroupId* and *ArtifactId*
 
 Remember what
 [*Refactoring*](https://refactoring.guru/refactoring)
@@ -758,29 +984,51 @@ has written a book on the topic with *Kent Beck*:
 Addison-Wesley (2018).
 
 The current package structure: `com.mycompany.app` comes from the initial
-*maven* project setup.
+*maven* project from the *"Maven-in-Five-Minutes"* tutorial that used:
 
-Refactor this structure on branch factorizer to: `de.factorizer`
+- `groupId`: *com.mycompany.app* and
 
-Consider the impact this refactoring will have:
+- `artifactId`: *my-app*
+
+defined in file [*pom.xml*](pom.xml):
+
+```xml
+  <groupId>com.mycompany.app</groupId>
+  <artifactId>my-app</artifactId>
+  <version>1.0-SNAPSHOT</version>
+```
+
+Goal of the refactoring to change: *"com.mycompany.app"* to *"de.factorizer"*
+and the resulting artifact from: *"my-app-1.0-SNAPSHOT.jar"* to
+`factorizer-1.0-SNAPSHOT.jar`.
+
+The refactoring should be performed on a new branch: `de.factorizer`.
+
+Consider the impact the refactoring will have:
 
 - in *pom.xml*, write down the new [*GAV*]()
     coordinates for *groupId*, *artifactId* and version (same).
 
-- to Java source files under: *src/main/java/com/mycompany*,
+- on Java source files under: *src/main/java/com/mycompany*,
 
-- to Java test files under: *src/test/java/com/mycompany*.
+- on Java test files under: *src/test/java/com/mycompany*,
 
-Make sure you start from a *"clean working tree"* such that you can reset to
-the commit with a properly working program:
+- on the final artifact: *my-app-1.0-SNAPSHOT.jar*.
+
+and write down the changes that need to be made.
+
+Create a new branch: `factorizer` off *main*. Make sure you start from
+a *"clean working tree"*:
 
 ```sh
 git status
+
+<create new branch: >
 ```
 ```
 On branch factorizer
 nothing to commit, working tree clean
-``
+```
 
 Perform the changes starting with *pom.xml* and then for *source* and
 *test* paths.
@@ -843,8 +1091,8 @@ target/maven-status/maven-compiler-plugin/compile/default-compile/createdFiles.l
 target/maven-status/maven-compiler-plugin/compile/default-compile/inputFiles.lst
 ```
 
-Show the impact of the refactoring had on modified files
-(*"refactoring footprint"*):
+Show the impact of the refactoring on modified files
+(aka *"refactoring footprint"*):
 
 ```sh
 git status                  # show new and modified files
@@ -876,9 +1124,10 @@ git log --oneline           # show the commit log
 ```
 c25e65f (HEAD -> factorizer) refactoring to 'de.factorize'
 83534b9 factorizer implementation completed
-530de68 (main) add pom.xml, src                      <-- 'main' branch
-96b05a4 add .gitignore
-02082e3 (tag: root) root commit (empty)
+c787b3e (main) add .git-modules                 <-- branch 'main' is here
+c319e7c add pom.xml, src
+841895e add .gitignore
+368b85b (tag: root) root commit (empty)
 ```
 
 Build and run the *.jar*:
@@ -902,9 +1151,23 @@ Error: Could not find or load main class com.mycompany.app.App
 Caused by: java.lang.ClassNotFoundException: com.mycompany.app.App
 ```
 
-- What is the cause of this error?
+What could cause the error?
 
-- How can it be fixed?
+```sh
+# show the MANIFEST.MF from the .jar-file
+jar xf target/factorizer-1.0-SNAPSHOT.jar META-INF/MANIFEST.MF &&
+    cat META-INF/MANIFEST.MF &&
+    rm -rf META-INF
+```
+```
+Manifest-Version: 1.0
+Created-By: Apache Maven 3.8.6
+Built-By: svgr2
+Build-Jdk: 21
+Main-Class: com.mycompany.app.App       <-- ?
+```
+
+How can it be fixed?
 
 Fix the problem, re-build and re-run:
 
@@ -912,7 +1175,7 @@ Fix the problem, re-build and re-run:
 java -jar target/factorizer-1.0-SNAPSHOT.jar 3 27 1092 65536 10952347 100000039
 ```
 
-The *.jar* is now also working:
+The *.jar* is now working:
 
 ```
 Hello Factorizer!
@@ -924,30 +1187,47 @@ Hello Factorizer!
  - n=100000039 -> [100000039] (prime number)
 ```
 
-Unfortunately, we missed the *"bug"* for properly building the *.jar* for
-committing the refactoring.
-
-- Can a commit be *"fixed"* (altered, changed, updated) after it was made?
-
-- What can be done to include the fix in the *factorizer* branch?
-
-- Can the buggy commit be removed and replaced with the proper one?
-
-- What are conditions for that?
-
-Try to remove the buggy commit and replace with proper one.
-
-After replacement, the proper commit should appear in the commit log:
+Unfortunately, we committed a buggy version:
 
 ```sh
 git log --oneline
 ```
 ```
-86aecee (HEAD -> factorizer) refactoring to 'de.factorize' (jar working)
+c25e65f (HEAD -> factorizer) refactoring to 'de.factorize'  <-- buggy commit
 83534b9 factorizer implementation completed
-530de68 (main) add pom.xml, src
-96b05a4 add .gitignore
-02082e3 (tag: root) root commit (empty)
+c787b3e (main) add .git-modules                 <-- branch 'main' is here
+c319e7c add pom.xml, src
+841895e add .gitignore
+368b85b (tag: root) root commit (empty)
+```
+
+What can be done?
+
+- Can a commit be *"fixed"* (altered, changed, updated) after it was made?
+
+- Can we simply commit the fix to the *factorizer* branch?
+
+- Can the buggy commit be removed and replaced with the proper one?
+
+- Are there conditions for that? -- Yes, the commit should not yet have been
+    published (pushed). Why is that?
+
+Since the commit hasn't been published, try to remove the buggy commit and
+replace with the proper one.
+
+After replacement, the proper commit should appear in the commit log with
+a changed commit-id:
+
+```sh
+git log --oneline
+```
+```
+83d5e39 (HEAD -> factorizer) refactoring to 'de.factorize'
+83534b9 factorizer implementation completed
+c787b3e (main) add .git-modules                 <-- branch 'main' is here
+c319e7c add pom.xml, src
+841895e add .gitignore
+368b85b (tag: root) root commit (empty)
 ```
 
 
@@ -955,7 +1235,7 @@ git log --oneline
 
 &nbsp;
 
-## 9. Unit Tests
+## 10. Unit Tests
 
 Create JUnit tests for method: `factorize(int n)` that test:
 
@@ -1018,11 +1298,9 @@ mvn test                                # run JUnit tests
 [INFO]  T E S T S
 [INFO] -------------------------------------------------------
 [INFO] Running de.factorizer.AppTest
-[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.094 s -
-- in de.factorizer.AppTest
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.094 s -- in de.factorizer.AppTest
 [INFO] Running de.factorizer.FactorizerTest
-[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.040 s -
-- in de.factorizer.FactorizerTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.040 s -- in de.factorizer.FactorizerTest
 [INFO]
 [INFO] Results:
 [INFO]
@@ -1036,8 +1314,7 @@ mvn test                                # run JUnit tests
 [INFO] ------------------------------------------------------------------------
 ```
 
-Run tests also in your IDE:
-
+Run tests also in the IDE:
 
 <img src="https://raw.githubusercontent.com/sgra64/mvn-fun/refs/heads/markup/img/vscode-tests.png" width="1200"/>
 
@@ -1096,7 +1373,7 @@ with a failed *test100*.
 
 &nbsp;
 
-## 10. *Javadoc*
+## 11. *Javadoc*
 
 *Javadoc* is *Java's* documentation method and toolset based on
 [*Java doc strings*](https://de.wikipedia.org/wiki/Javadoc)
@@ -1146,7 +1423,7 @@ chrome target/docs/index.html
 
 &nbsp;
 
-## 11. Release
+## 12. Release
 
 Create a *release*-branch off the *main*-branch (not branch *factorizer*):
 
@@ -1408,7 +1685,83 @@ or pushed to an *artifact repository*:
 
 &nbsp;
 
-## 12. Host Project in a Remote Repository
+## 13. *Build-Process* and *Continuous Integration (CI)*
+
+The *build process* transforms source code into an executable artifact (for Java,
+this is a *.jar* file) that can be released, distributed, deployed and executed.
+
+The *Build Process*:
+
+- *begins* at the point when source code is present and ready for compilation,
+
+- it *ends* when the executable artifact (the *.jar* file) has been created.
+
+Steps of the *Build Process* are:
+
+1. Acquisition of dependencies (required libraries, packages) -- dependencies
+    are aquired transitively including all dependencies required by
+    dependencies.
+
+1. Compilation of source code (from `src/main` to `target/classes`).
+
+1. Compilation of Unit tests (from `src/test` to `target/test-classes`).
+
+1. Running Unit tests.
+
+1. Packaging of classes to the *"executable artifact"* as result of the
+    *Build Process* (`.class` files from `target/classes` is packaged to
+    the final *.jar* `factorizer-1.0-SNAPSHOT.jar`).
+
+Steps of the *Build Process* are associated with *Maven* commands:
+
+1. Dependencies are implicitely acquired with every *Maven* command.
+
+1. `mvn compile`
+
+1. `mvn test-compile`
+
+1. `mvn test`
+
+1. `mvn package`
+
+The *Build Process* should always run without error, particularly before
+commits are made. *"Broken build"*, e.g. caused by compile error, need to
+be fixed before commit. 
+
+In professional software development, *project builds* are not only performed
+on developer's laptops, but also on *build servers*, which are dedicated
+server machines that continously and often over-night fetch code from the
+source repository and perform build- and test processes (test: perform unit
+tests).
+
+*"Broken builds"* or *"tests"* are detected instantly and independently of
+developer activity.
+
+Read article by *Robert Sheldon* and *Cameron McKenzie:*
+[*"What is a build server?"*](https://www.techtarget.com/searchsoftwarequality/definition/Build-Server)
+and understand the concept of
+[*Continuous Integration (CI)*]() from the article.
+
+
+<img src="https://www.techtarget.com/rms/onlineimages/continuous_integration-f.png" width="600"/>
+
+From the article:
+
+<!-- block-quote: put '>' in front -->
+> "The *build server* is a key component of *continuous integration*, which
+    is the practice of automatically and regularly integrating code changes
+    from multiple developers working with the same codebase.
+    *Continuous integration* is typically part of a larger *continuous
+    integration/continuous delivery (CI/CD)* framework.
+    *Continuous delivery* is concerned with deploying the software to
+    *testing*, *staging* and *production* environments."
+
+
+<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+
+&nbsp;
+
+## 14. Host Project in a Remote Repository
 
 Create a new repository: `mvn-fun` and push branches:
 
