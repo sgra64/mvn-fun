@@ -8,6 +8,12 @@
 # ignore maven project config files
 .mvn/
 
+# ignore data database directories
+.data/
+data/
+.database/
+database/
+
 # ignore git submodule files
 # .gitignore
 .gitmodules
