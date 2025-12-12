@@ -9,20 +9,20 @@ import mvn.jdbc.datamodel.Customer;
 /**
  * Demo that creates {@link Customer} objects and outputs as table.
  * <pre>
- * +------+----------------+----------------+------------------------+
- * |   ID | NAME           | FIRSTNAME      | CONTACT                |
- * +------+----------------+----------------+------------------------+
- * |  100 | Eric           | Meyer          | eme22@gmail.com        |
- * |  101 | Sommer         | Tina           | +49 030 22458 29425    |
- * |  102 | Schulze        | Tim            | +49 171 2358124        |
- * |  103 | Brinkmann      | Tobias         | +49 030 662465724      |
- * +------+----------------+----------------+------------------------+
+ * +------+------------+------------+----------------------+----------------+------------------+
+ * |   ID | NAME       | FIRSTNAME  | CONTACT              | STATUS         | STATUS_CHANGE    |
+ * +------+------------+------------+----------------------+----------------+------------------+
+ * |  100 | Eric       | Meyer      | eme22@gmail.com      | Active         | 2024-06-04 12:35 |
+ * |  101 | Sommer     | Tina       | +49 030 22458 29425  | Active         | 2025-10-07 10:28 |
+ * |  102 | Schulze    | Tim        | +49 171 2358124      | Active         | 2024-12-28 18:00 |
+ * |  103 | Brinkmann  | Tobias     | +49 030 662465724    | InRegistration | 2025-11-28 12:18 |
+ * +------+------------+------------+----------------------+----------------+------------------+
  * </pre>
  */
-public class CustomerRunner implements Application.Runnable {
+public class CustomerRunner implements Runnable {
 
     @Override
-    public Runnable run(ApplicationContext context) {
+    public void run(ApplicationContext context) {
         // 
         DateTimeFormatter dtf = context.dtf();
         var tableBuilder = context.customerTableFormatterBuilder();
@@ -47,7 +47,5 @@ public class CustomerRunner implements Application.Runnable {
                 .row(c4)
             .footer()
             .print(System.out);
-        // 
-        return this;
     }
 }

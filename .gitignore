@@ -8,16 +8,17 @@
 # ignore maven project config files
 .mvn/
 
-# ignore data database directories
-.data/
-data/
-.database/
-database/
-
 # ignore git submodule files
 # .gitignore
 .gitmodules
 .vscode/
+.env/
+
+# ignore database files
+.database/
+database/
+.data/
+data
 
 # ignore generated directories and compiled output (generated)
 target/

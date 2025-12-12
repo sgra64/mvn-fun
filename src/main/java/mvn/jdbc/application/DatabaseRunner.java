@@ -1,12 +1,8 @@
 package mvn.jdbc.application;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 import java.time.format.DateTimeFormatter;
 import org.apache.logging.log4j.*;
-
-import mvn.jdbc.application.Application.Runnable;
 
 /**
  * Demo that creates {@link mvn.jdbc.datamodel.Customer} objects
@@ -27,7 +23,7 @@ public class DatabaseRunner implements Application.Runnable {
     private final Logger log = LogManager.getLogger("db-logger");
 
     @Override
-    public Runnable run(ApplicationContext context) {
+    public void run(ApplicationContext context) {
         // 
         DateTimeFormatter dtf = context.dtf();
         var table = context.customerTableFormatterBuilder().build();
@@ -43,6 +39,7 @@ public class DatabaseRunner implements Application.Runnable {
             // .db_user("root")
             // .db_password("")
             // 
+            // .schema("file:src/main/resources/db-schema.sql")
             // .schema("file:src/main/resources/db-schema-customer.sql")
             .schema(
                 // "CREATE SCHEMA IF NOT EXISTS TESTDB;" +
@@ -66,10 +63,13 @@ public class DatabaseRunner implements Application.Runnable {
             // 
             // .data("file:src/main/resources/db-data.sql")
             .data(
+                "ALTER TABLE CUSTOMER ALTER COLUMN ID RESTART WITH 100;" +
+                "" +
                 "INSERT INTO CUSTOMER(FIRSTNAME, NAME, CONTACT, STATUS, STATUS_CHANGE) VALUES " +
                     "('Eric',   'Meyer',    'eme22@gmail.com',      'Active',         {ts '2024-06-04 12:35'})," +
                     "('Sommer', 'Tina',     '+49 030 22458 29425',  'Active',         {ts '2025-10-07 10:28'})," +
                     "('Schulze', 'Tim',     '+49 171 2358124',      'Active',         {ts '2024-12-28 18:00'})," +
+                    "('Brinkmann', 'Tobias','+49 030 662465724',    'InRegistration', {ts '2025-11-28 12:18'})," +
                     "('Tony',   'Allister', '+49 030 24253134',     'Active',         {ts '2023-02-10 18:00'})," +
                     "('Sandra', 'Ohlstadt', 'ohlst@gmail.com',      'Active',         {ts '2023-08-17 18:00'})," +
                     "('Erica',  'Gronemann', 'gron@gmx.de',         'InRegistration', {ts '2022-02-26 07:02'})," +
@@ -77,6 +77,10 @@ public class DatabaseRunner implements Application.Runnable {
                     "('Igor',   'Medwedev', 'gopnik@bht-berlin.de', 'InRegistration', {ts '2025-11-28 23:26'})"
             )
             .build();
+        /*
+         * db object has been built and can now be used.
+         */
+
         // 
         // db.update("UPDATE CUSTOMER SET STATUS_CHANGE=?", ps -> {
         //     LocalDateTime ldt = LocalDateTime.parse("2025-11-20 00:00:00", dtfsec);
@@ -86,7 +90,7 @@ public class DatabaseRunner implements Application.Runnable {
         // 'dbcon' is the database connection object
         var dbcon = db.connect().get();
         // 
-        // Database-access in JDBC occurs through (SQL-)'statements'
+        // Database-access in JDBC is performed with (SQL-)'statements'
         try(Statement stmt = dbcon.createStatement()) {
             // 
             // send SQL-Query to database, obtain 'ResultSet' with results
@@ -117,7 +121,6 @@ public class DatabaseRunner implements Application.Runnable {
         } catch (SQLException e) {
             log.error(String.format("Error reading all records from database CUSTOMER, %s", e.getMessage()));
         }
-        return this;
     }
 
     // try(PreparedStatement ps = dbcon.prepareStatement("SELECT * FROM CUSTOMER WHERE ID=?")) {

@@ -56,17 +56,37 @@ import lombok.experimental.Accessors;
 @AllArgsConstructor
 public class TableFormatter {
 
-    /*
+    /**
      * List of {@link Column} instances.
      */
     private final List<Column> columns;
 
-    /*
-     * Registered row mappers.
+    /**
+     * Row mappers map objects of type {@code <T>>} to {@code String[]} fields
+     * that corresond to consecutive fields in one table row.
+     * <pre>
+     * +------+----------------+--------------------+----------------------------+
+     * |  100 | Meyer          | Eric               | +49 030 515 141345         |
+     * +------+----------------+--------------------+----------------------------+
+     * </pre>
      */
     private final Map<Class<?>, Function<Object, String[]>> rowMappers;
 
-    /*
+    /**
+     * Multi-row mappers map objects of type {@code <T>} to multiple table rows,
+     * e.g. to include multiple contacts.
+     * <pre>
+     * +------+----------------+--------------------+----------------------------+
+     * |  100 | Meyer          | Eric               | +49 030 515 141345         |
+     * |      |                |                    | eme@gmail.com              |
+     * |      |                |                    | fax: 030 234-134651        |
+     * +------+----------------+--------------------+----------------------------+
+     * </pre>
+     */
+    private final Map<Class<?>, Function<Object, String[][]>> multiRowMappers;
+
+
+    /**
      * Internal buffer to collect formatted table content.
      */
     private final StringBuilder sb = new StringBuilder();
@@ -114,21 +134,49 @@ public class TableFormatter {
     }
 
     /**
+     * Format collection of objects as rows in the table.
+     * @param mappedObjectsCollection object mapped to rows
+     * @param seperatorLine append optional seperator lines between objects
+     * @return
+     */
+    public TableFormatter row(Collection<?> mappedObjectsCollection, Boolean... seperatorLine) {
+        if(mappedObjectsCollection != null) {
+            for(var mappedObject : mappedObjectsCollection) {
+                row(mappedObject, seperatorLine);
+            }
+        }
+        return this;
+    }
+
+    /**
      * Format object as row in the table using a <i>rowMapper</i> registered
      * for the object class. Example:
      * <pre>
      * |  100 | Meyer          | Eric           | eme22@gmail.com        |
      * </pre>
-     * @param mappedObject object to map to row
+     * @param mappedObject object mapped to a row
+     * @param seperatorLine append optional seperator line
      * @return chainable self-reference
      */
-    public TableFormatter row(Object mappedObject) {
+    public TableFormatter row(Object mappedObject, Boolean... seperatorLine) {
+        boolean sepLine = seperatorLine.length > 0? seperatorLine[0] : false;
         if(mappedObject != null && rowMappers != null) {
-            // MasterInterface.class.isAssignableFrom(childClass2.getClass()
             for(Class<?> key : rowMappers.keySet()) {
                 // also match implementing interfaces such as 'ResultSet'
                 if(key.isAssignableFrom(mappedObject.getClass())) {
                     row(rowMappers.get(key).apply(mappedObject));
+                    if(sepLine) line();
+                }
+            }
+        }
+        if(mappedObject != null && multiRowMappers != null) {
+            for(Class<?> key : multiRowMappers.keySet()) {
+                // also match implementing interfaces such as 'ResultSet'
+                if(key.isAssignableFrom(mappedObject.getClass())) {
+                    for(var row : multiRowMappers.get(key).apply(mappedObject)) {
+                        row(row);   // output each row
+                    }
+                    if(sepLine) line();
                 }
             }
         }
@@ -255,6 +303,7 @@ public class TableFormatter {
     public static class TableFormatterBuilder {
         private List<Column> columns = new ArrayList<>();
         private Map<Class<?>, Function<Object, String[]>> rowMappers = null;
+        private Map<Class<?>, Function<Object, String[][]>> multiRowMappers = null;
 
         /**
          * Define table by specifying the header line, e.g. with:
@@ -307,8 +356,8 @@ public class TableFormatter {
         }
 
         /**
-         * Register rowmapper for type {@code <T>} that maps an object of type
-         * {@code <T>} to {@code String} array of consecutive row segments.
+         * Register row-mapper for type {@code <T>} that maps an object of type
+         * {@code <T>} to a {@code String} array of consecutive segments in one row.
          * @param <T> generic type of objects to map
          * @param typeToMap class of type {@code <T>}
          * @param mapper {@link Function} invoked to map object of type {@code <T>}
@@ -321,6 +370,26 @@ public class TableFormatter {
                     this.rowMappers = new HashMap<>();
                 }
                 this.rowMappers.put(typeToMap, (Function<Object, String[]>) mapper);
+            }
+            return this;
+        }
+
+        /**
+         * Register row-mapper for type {@code <T>} that maps an object of type
+         * {@code <T>} to a {@code String} array with multiple rows of consecutive
+         * segments in each row.
+         * @param <T> generic type of objects to map
+         * @param typeToMap class of type {@code <T>}
+         * @param mapper {@link Function} invoked to map object of type {@code <T>}
+         * @return chainable self-reference
+         */
+        @SuppressWarnings("unchecked")
+        public <T> TableFormatterBuilder multiRowMapper(Class<T> typeToMap, Function<T, String[][]> mapper) {
+            if(typeToMap != null && mapper != null) {
+                if(this.multiRowMappers==null) {
+                    this.multiRowMappers = new HashMap<>();
+                }
+                this.multiRowMappers.put(typeToMap, (Function<Object, String[][]>) mapper);
             }
             return this;
         }

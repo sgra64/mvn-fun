@@ -6,7 +6,9 @@ import java.util.*;
 import java.util.Spliterators.AbstractSpliterator;
 import java.util.function.Consumer;
 import java.util.stream.*;
+
 import org.apache.logging.log4j.*;
+
 import lombok.Builder;
 
 /**
@@ -129,7 +131,6 @@ public class Database {
          */
         void accept(PreparedStatement ps) throws SQLException;
     }
-
 
     /**
      * Builder class for {@link Database} object.

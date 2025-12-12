@@ -3,11 +3,14 @@ package mvn.jdbc.application;
 import java.io.*;
 import java.util.*;
 import java.time.format.DateTimeFormatter;
-import lombok.*;
-import lombok.experimental.Accessors;
+
 import org.apache.logging.log4j.*;
 
+import lombok.*;
+import lombok.experimental.Accessors;
+
 import mvn.jdbc.datamodel.Customer;
+
 
 /**
  * Container holding objects shared accross the application.
@@ -66,14 +69,44 @@ public class ApplicationContext {
     private final TableFormatter.TableFormatterBuilder
         // 
         customerTableFormatterBuilder = TableFormatter.builder()
-            .columns("| ID | NAME | FIRSTNAME | CONTACT |")
-            // .columns("| ID | NAME | FIRSTNAME | CONTACT | STATUS | STATUS_CHANGE |")
-            .widths(6, 16, 16, 24, 16, 21)
+            // .columns("| ID | NAME | FIRSTNAME | CONTACT |")
+            .columns("| ID | NAME | FIRSTNAME | CONTACT | STATUS | STATUS_CHANGE |")
+            .widths(6, 16, 16, 24, 16, 18)
             .alignments("R")
             // 
             .rowMapper(Customer.class, c ->
                 new String[] {Long.toString(c.id()), c.name(), c.firstName(), c.contact(),
                     c.status().toString(), c.statusChange().format(dtf)});
+
+    // /**
+    //  * {@link TableFormatter.TableFormatterBuilder} for the {@link Vehicle} table.
+    //  */
+    // private final TableFormatter.TableFormatterBuilder
+    //     // 
+    //     vehicleTableFormatterBuilder = TableFormatter.builder()
+    //         .columns("| ID | MAKE | MODEL | SEATS | CATEGORY | POWER | STATUS |")
+    //         .widths(6, 16, 16, 7, 16, 16, 18)
+    //         .alignments("RLLR")
+    //         // 
+    //         .rowMapper(mvn.jdbc.datamodel.Vehicle.class, v ->
+    //             new String[] {Long.toString(v.id()), v.make(), v.model(), Integer.toString(v.seats()),
+    //                 v.category().toString(), v.power().toString(), v.status().toString()});
+
+    // /**
+    //  * {@link TableFormatter.TableFormatterBuilder} for the {@link Reservation} table.
+    //  */
+    // private final TableFormatter.TableFormatterBuilder
+    //     // 
+    //     reservationTableFormatterBuilder = TableFormatter.builder()
+    //         .columns("| ID |CUSTID| VEHID| TIME_BEGIN | TIME_END | PICKUP | DROPOFF | STATUS |")
+    //         .widths(8, 6, 6, 18, 18, 16, 12, 10)
+    //         .alignments("RRR")
+    //         // 
+    //         .rowMapper(mvn.jdbc.datamodel.Reservation.class, r ->
+    //             new String[] {Long.toString(r.id()),
+    //                 Long.toString(r.customer_id()), Long.toString(r.vehicle_id()),
+    //                 r.timeBegin().format(dtf), r.timeEnd().format(dtf),
+    //                 r.pickup(), r.dropoff(), r.status().toString()});
 
     /**
      * None-public constructor invoked by {@link Application} instance that
@@ -91,14 +124,14 @@ public class ApplicationContext {
      * <p>
      * If no arguments are passed from the command line (CL), {@code args} are
      * taken from the 'application.args' property.
-     * @param clargs arguments passed from the command line
+     * @param args arguments passed from the command line
      * @return true if startup succeeded
      */
-    boolean startup(String[] clargs, Logger log) {
+    boolean startup(String[] args, Logger log) {
         if( ! started) {
             // initialize 'args' from the comman line and remove last 'arg' if
             // added by VSCodeRunner (VSCodeRunner adds active file to args[])
-            this.args = Arrays.asList(clargs).stream()
+            this.args = Arrays.asList(args).stream()
                 // remove 'arg' if path starts with "c:\path" or "/path"
                 .filter(arg -> ! (arg.length() > 30 && (arg.startsWith("/") || arg.charAt(1)==':')))
                 .toArray(String[]::new);

@@ -31,9 +31,8 @@ public class Application {
          * Method invoked with {@link ApplicationContext} containing {@code args[]}
          * and {@link Properties} obtained from {@code 'application.properties'}.
          * @param context {@link ApplicationContext} passed to {@link Runnable} instance
-         * @return chainable self-reference
          */
-        Runnable run(ApplicationContext context);
+        void run(ApplicationContext context);
     }
 
     /**
@@ -88,6 +87,7 @@ public class Application {
                 switch(rs.trim()) {
                     case "CustomerRunner": runnable = new CustomerRunner(); break;
                     case "DatabaseRunner": runnable = new DatabaseRunner(); break;
+                    case "ORMRunner": runnable = new ORMRunner(); break;
                 }
                 if(runnable != null) {
                     log.info(String.format("executing runnable: '%s.class'", runnable.getClass().getSimpleName()));
