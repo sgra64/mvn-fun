@@ -1,0 +1,64 @@
+#------------------------------------------------------------------------------
+# .gitignore contains patterns of files and directories to be ignored by git.
+# 
+# see: https://www.atlassian.com/git/tutorials/saving-changes/gitignore
+# example: https://github.com/github/gitignore/blob/master/Java.gitignore
+#------------------------------------------------------------------------------
+
+# ignore maven project config files
+.mvn/
+
+# ignore git submodule files
+# .gitignore
+.gitmodules
+.vscode/
+
+# ignore database files
+.database/
+database/
+.data/
+data
+
+# ignore generated directories and compiled output (generated)
+target/
+*.class
+
+# ignore Java archive files
+*.jar
+
+# ignore other archive and encoded files
+*.7z
+*.gz
+*.rar
+*.tar
+*.tgz
+*.tar.gz
+*.zip
+*.uue*
+
+# ignore folders with branches
+branch/
+branches/
+
+# ignore log directories and *.log files (generated)
+log/
+logs/
+*.log
+
+# ignore eclipse IDE project files
+.classpath
+.project
+.settings
+
+# ignore IntelliJ IDE project files
+.iml
+.idea
+
+# ignore tmp directories and *.tmp files
+tmp/
+temp/
+*.tmp
+
+# ignore OSX system files, *.orig files
+.DS_Store
+*.orig
