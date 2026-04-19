@@ -25,19 +25,21 @@ Challenges:
 
 1. [Import *.vscode* as Git-Submodule](#7-import-vscode-as-git-submodule)
 
-1. [*Factorizer.java*](#8-factorizerjava)
+1. [Launch with *Code Runner*](#8-launch-with-code-runner)
 
-1. [Refactor *GroupId* and *ArtifactId*](#9-refactor-groupid-and-artifactid)
+1. [*Factorizer.java*](#9-factorizerjava)
 
 1. [*Unit Tests*](#10-unit-tests)
 
 1. [*Javadoc*](#11-javadoc)
 
-1. [*Release*](#12-release)
+1. [Refactor *GroupId* and *ArtifactId*](#12-refactor-groupid-and-artifactid)
 
-1. [*Build-Process* and *Continuous Integration (CI)*](#13-build-process-and-continuous-integration-ci)
+1. [*Release*](#13-release)
 
-1. [*Host Project in a Remote Repository*](#14-host-project-in-a-remote-repository)
+1. [*Push Project to a Remote Repository*](#14-push-project-to-a-remote-repository)
+
+1. [*Build-Process* and *Continuous Integration (CI)*](#15-build-process-and-continuous-integration-ci)
 
 
 <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
@@ -374,7 +376,7 @@ Output shows the packaged content of the *.jar* file:
     68 Thu Oct 16 22:14:14 CEST 2025 META-INF/maven/com.mycompany.app/my-app/pom.properties
 ```
 
-Run the resulting *.jar* as a stand-alone program:
+Run the resulting *.jar* as a stand-alone program (without classpath `-cp`):
 
 ```sh
 java -jar target/my-app-1.0-SNAPSHOT.jar
@@ -487,7 +489,10 @@ that contain nothing.
 1. Next, create [*.gitignore*](https://github.com/sgra64/mvn-fun/blob/main/.gitignore)
     and commit to the *main* branch.
 
-1. Then, commit *pom.xml* and *src*.
+1. On Windows: Before committing *pom.xml* and *src*, make sure all *.java* files
+    under *src* and *pom.xml* use `LF` line ending, not `CR/LF`. Change, if necessary.
+
+1. Commit *pom.xml* and *src*.
 
 1. Remove unwanted content: `git clean -fd`.
 
@@ -500,10 +505,8 @@ messages don't match:
 02082e3 (tag: root) root commit (empty)
 ```
 
-Test commits contain the correct files.
-
-Test the first commit after the root commit (id: *96b05a4* - you may adjust the
-id):
+Test that commits contain the correct files by comparing to the previous
+commit:
 
 ```sh
 # compare two commits specified by their 'id'
@@ -628,10 +631,15 @@ cat .gitmodules             # show content of the '.gitmodules' file
         url = https://github.com/sgra64/gitmodule-vscode-mvn-fun
 ```
 
+Remove file '.gitmodules' from the tracking index to avoid removal when
+switching branches ('.gitmodules' should also appear on the 'main' branch).
 Commit the sub-module to branch *git-modules:*
 
 ```sh
-git commit -m "add git submodule: '.vscode', add .gitmodules"
+# remove '.gitmodules' from the tracking index to avoid removal when switching branches
+git rm --cached .gitmodules
+
+git commit -m "add git submodule: '.vscode'"
 ```
 
 The commit-log shows three commits:
@@ -645,7 +653,7 @@ git log --oneline           # show commit log
 368b85b (tag: root) root commit (empty)
 ```
 
-Test that *git-modules* have properly been registered:
+Test that *git-modules* have been registered:
 
 ```sh
 git submodule               # list registered sub-modules
@@ -654,9 +662,9 @@ git submodule               # list registered sub-modules
  7e94a8c9541506c3deb5a361e45088451589aa63 .vscode (heads/main)
 ```
 
-Check updates that may have been published. Git will enter each *sub-module*
-and invoke *git pull* asking for updates from the associated remote
-repository:
+Check for updates that may have been published. Git will enter each
+*sub-module* and invoke *git pull* asking for updates from the associated
+remote repository:
 
 ```sh
 git submodule foreach git pull
@@ -685,14 +693,14 @@ Switch back to the *main* branch:
 git switch main             # switch back to the main branch
 ```
 
-Accept the warning:
+Ignore the warning:
 
 ```
 warning: unable to rmdir '.vscode': Directory not empty
 Switched to branch 'main'
 ```
 
-The current branch is *main*:
+The current branch is now *main*:
 
 ```sh
 git branch                  # show current branch
@@ -701,7 +709,7 @@ git branch                  # show current branch
   git-modules
 * main                      <-- 'main' is the active branch (*)
 ```
-
+<!-- 
 Check-out and commit the *.gitmodules* file from the *git-modules* branch:
 
 ```sh
@@ -719,7 +727,7 @@ c787b3e (HEAD -> main) add .git-modules
 c319e7c add pom.xml, src
 841895e add .gitignore
 368b85b (tag: root) root commit (empty)
-```
+``` -->
 
 The *.vscode* directory is visible on branch *main* containing
 *VSCode* settings:
@@ -733,23 +741,70 @@ drwxr-xr-x 1 svgr2 Kein    0 Oct 18 01:44 .
 drwxr-xr-x 1 svgr2 Kein    0 Oct 18 01:52 ..
 -rw-r--r-- 1 svgr2 Kein   32 Oct 18 01:44 .git
 -rw-r--r-- 1 svgr2 Kein   23 Oct 18 01:44 .gitignore
--rw-r--r-- 1 svgr2 Kein 1296 Oct 18 01:44 launch.json           <-- 'Run&Debug' launches
--rw-r--r-- 1 svgr2 Kein   57 Oct 18 02:02 launch-coderunner     <-- Code Runner launch
--rw-r--r-- 1 svgr2 Kein  896 Oct 18 01:44 launch-terminal.sh    <-- launch script for VSCode terminal
+-rw-r--r-- 1 svgr2 Kein 1296 Oct 18 01:44 launch.json           <-- Run-&-Debug launches
+-rw-r--r-- 1 svgr2 Kein   57 Oct 18 02:02 launch-coderunner.sh  <-- Code Runner launch-script
+-rw-r--r-- 1 svgr2 Kein  896 Oct 18 01:44 launch-terminal.sh    <-- VSCode terminal launches
 -rw-r--r-- 1 svgr2 Kein 3467 Oct 18 01:44 settings.json         <-- VSCode project settings file
 ```
-
-[*VSCode Code Runner*](https://marketplace.visualstudio.com/items?itemName=formulahendry.code-runner)
-for *Java*cd is a useful extension to install in *VSCode*.
-`<Ctrl> + <Alt> + <N>` quickly launches the program specified in file: *.vscode/launch-coderunner*,
-which is helpful for development.
 
 
 <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
 
 &nbsp;
 
-## 8. *Factorizer.java*
+## 8. Launch with *Code Runner*
+
+
+[*VSCode Code Runner*](https://marketplace.visualstudio.com/items?itemName=formulahendry.code-runner)
+is a useful extension to install for *VSCode*.
+`<Ctrl> + <Alt> + <N>` quickly launches the program using the launch-script:
+[*.vscode/launch-coderunner.sh*](https://github.com/sgra64/gitmodule-vscode-mvn-fun).
+
+When *Code Runner* is first launched, the script needs to configure launches
+taking several seconds. Two steps are performed:
+
+1. a file `target/classpath` is created with the *CLASSPATH* generated by
+    `mvn dependency:build-classpath` (see *launch-coderunner.sh*) and
+
+1. another file `.vscode/main-class` is created containing the main-class
+    to launch.
+
+Type `<Ctrl> + <Alt> + <N>` triggering *Code Runner* to launch the program.
+The terminal section below shows both steps being performed before
+the actual launch and with the message *"Hello World!"* appearing:
+
+<img src="https://raw.githubusercontent.com/sgra64/mvn-fun/refs/heads/markup/img/vscode-coderunner-launch-1.png" width="1200"/>
+
+When dependencies are changed in `pom.xml`, file `target/classpath` must be
+updated, which can be achieved by simply deleting it triggering re-build with
+the next launch.
+
+The *Code Runner* launch itself is configured in `settings.json` invoking
+[*.vscode/launch-coderunner.sh*](https://github.com/sgra64/gitmodule-vscode-mvn-fun/blob/main/launch-coderunner.sh). The launch assumes *bash* is present on your system (`bash -c`). If not, use
+another shell to invoke the script:
+
+```json
+// VSCode project settings file.
+{
+    // Java Code Runner settings
+    "code-runner.defaultLanguage": "java",
+    "code-runner.clearPreviousOutput": true,
+    "code-runner.saveAllFilesBeforeRun": true,
+    "code-runner.executorMap": {
+        "java": "bash .vscode/launch-coderunner.sh"   // <-- Code Runner launch
+    },
+    // ...
+}
+```
+
+Following launches will use created files and perform fast.
+
+
+<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+
+&nbsp;
+
+## 9. *Factorizer.java*
 
 Create a new branch: `factorizer` and make sure you are on the new branch:
 
@@ -757,60 +812,47 @@ Create a new branch: `factorizer` and make sure you are on the new branch:
 git branch -avv             # show branches
 ```
 ```
-* factorizer 530de68 add pom.xml, src       <-- * marks the currently active branch
+* factorizer 530de68 add pom.xml, src       <-- (*) marks the currently active branch
   git-modules 7024af9 add git submodule: '.vscode', add .gitmodules
   main       c787b3e add .git-modules
 ```
 
-The commit log also shows the new branch *factorizer* that it currently pointing
-to the last commit of the *main* branch:
+The commit log also shows the new branch *factorizer* that it currently
+pointing to the last commit of the *main* branch:
 
 ```sh
 git log --oneline
 ```
 
-Branches *factorizer* and *main* point to the same commit.
-HEAD points to *factorizer*:
+Branches *factorizer* and *main* point to the same commit. HEAD points
+to branch *factorizer*:
 
 ```
-c787b3e (HEAD -> factorizer, main) add .git-modules
-530de68 add pom.xml, src
+c787b3e (HEAD -> factorizer, main) add pom.xml, src
 96b05a4 add .gitignore
 02082e3 (tag: root) root commit (empty)
 ```
 
-Modify class *App.java* such the it accepts numbers from the command line and
-outputs the prime factors of these numbers.
-
-```sh
-export CLASSPATH="target/classes"
-
-java com.mycompany.app.App 3 27 1092 65536 10952347 100000039
-```
-```
-Hello Factorizer!
- - n=3 -> [3] (prime number)
- - n=27 -> [3, 3, 3]
- - n=1092 -> [2, 2, 3, 7, 13]
- - n=65536 -> [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]
- - n=10952347 -> [7, 23, 59, 1153]
- - n=100000039 -> [100000039] (prime number)
-```
 
 &nbsp;
 
-Create a `Factorizer` *component*. Remember the properties of a Java component
-implementation. A component implementation has:
+Create a *component* `Factorizer` in package `com.mycompany.app`.
+A component implementation has:
 
 - a public interface `Factorizer.java` and
 
 - a non-public implementation class `FactorizerImpl.java`.
 
-- Implement the component as a *(lazy) singleton*.
+- Class `FactorizerImpl.java` implements the *(lazy) singleton* pattern.
 
-The interface `Factorizer.java` is:
+
+*Step 1:* Create a public interface `Factorizer.java` is:
 
 ```java
+package com.mycompany.app;
+
+import java.util.List;
+
 /**
  * Interface of a singleton component that factorizes numbers
  * into prime factors.
@@ -853,55 +895,118 @@ public interface Factorizer {
 }
 ```
 
-Implementation class *FactorizerImpl.java* has a method: *run(String[] args)*
-that receives the *args* when class *App.java* runs.
+*Step 2:* Create a non-public implementation class `FactorizerImpl.java` that
+implements the *(lazy) singleton* pattern.
 
 ```java
-@Override
-public void run(String[] args) {
-    Stream.of(args)
-        .forEach(f -> {
-            System.out.println(
-                String.format(" - n=%d -> %s%s", 0, List.of(), " (isPrime)"));
-        });
+package com.mycompany.app;
+
+import java.util.List;
+
+
+class FactorizerImpl implements Factorizer {
+
+    @Override
+    public void run(String[] args) {
+        Stream.of(args)
+            .forEach(arg -> {
+                System.out.println(
+                    String.format(" - n=%s -> %s%s", arg, List.of(), " (isPrime)"));
+            });
+    }
+
+    // auto-fill in remaining methods
 }
 ```
 
-Test the implementation with this *run()* function:
+*Step 3:* Change message *"Hello World!"* to *"Hello Factorizer!"* in class
+*App.java*.
 
-```sh
-java com.mycompany.app.App 3 27 1092 65536 10952347 100000039
+*Step 4:* Invoke `run(String[] args)` of singleton instance *Factorizer*
+in the main-class *App.java* passing command line arguments.
+
+
+*Step 5:* Create an argument file `.vscode/args` with numbers (*"zehn"* is there
+with purpose):
+
 ```
+3 9 zehn 27 1092 65536 10952347 100000039
+```
+
+*Step 6:* Run the code:
+
 ```
 Hello Factorizer!
- - n=0 -> [] (isPrime)
- - n=0 -> [] (isPrime)
- - n=0 -> [] (isPrime)
- - n=0 -> [] (isPrime)
- - n=0 -> [] (isPrime)
- - n=0 -> [] (isPrime)
+ - n=3 -> [] (isPrime)
+ - n=9 -> [] (isPrime)
+ - n=zehn -> [] (isPrime)
+ - n=27 -> [] (isPrime)
+ - n=1092 -> [] (isPrime)
+ - n=65536 -> [] (isPrime)
+ - n=10952347 -> [] (isPrime)
+ - n=100000039 -> [] (isPrime)
 ```
 
 
 &nbsp;
 
-Understand the code and implement processing in *run()* as *Java stream*:
+*Step 7:* If the output above appears, commit with message:
+    `"basic args processing working"` to branch *"factorizer"*.
 
-<img src="https://raw.githubusercontent.com/sgra64/mvn-fun/refs/heads/markup/img/process-args-as-stream.png" width="800"/>
 
-After completion, the program should produce the correct output:
+*Step 8:* Implement method *factorize(Integer n)*. Think about a prompt that
+may generate the code.
+
+*Step 9:* Change code such that method *factorize(Integer n)* is invoked
+and produces the correct output showing label *"(isPrime)"* only for
+prime numbers:
 
 ```
 Hello Factorizer!
- - n=3 -> [3] (prime number)
+ - n=3 -> [3] (isPrime)
+ - n=9 -> [3, 3]
+ - n=10 -> [2, 5]
  - n=27 -> [3, 3, 3]
  - n=1092 -> [2, 2, 3, 7, 13]
  - n=65536 -> [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]
  - n=10952347 -> [7, 23, 59, 1153]
- - n=100000039 -> [100000039] (prime number)
+ - n=100000039 -> [100000039] (isPrime)
 ```
 
-Review changes when the program is working:
+Re-run with more arguments in file `.vscode/args`:
+
+```
+3 9 zehn 27 1092 65536 10952347 100000039
+sieben 999 349862356 5984503471 6427356727854 64273567346854 
+```
+
+Output is:
+
+```
+Hello Factorizer!
+ - n=3 -> [3] (isPrime)
+ - n=9 -> [3, 3]
+ - n=10 -> [2, 5]
+ - n=27 -> [3, 3, 3]
+ - n=1092 -> [2, 2, 3, 7, 13]
+ - n=65536 -> [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]
+ - n=10952347 -> [7, 23, 59, 1153]
+ - n=100000039 -> [100000039] (isPrime)
+ - n=7 -> [7] (isPrime)
+ - n=999 -> [3, 3, 3, 37]
+ - n=349862356 -> [2, 2, 87465589]
+ - n=5984503471 -> [5984503471] (isPrime)
+ - n=6427356727854 -> [2, 3, 179, 5984503471]
+ - n=64273567346854 -> [2, 197, 223, 8209, 89113]
+```
+
+Changes may be needed in interface method *factorize(n)* to process large
+input numbers at the end.
+
+
+&nbsp;
+
+Consider changes made during this step:
 
 ```sh
 git status
@@ -911,48 +1016,46 @@ On branch factorizer
 Changes not staged for commit:
   (use "git add <file>..." to update what will be committed)
   (use "git restore <file>..." to discard changes in working directory)
-        modified:   src/main/java/com/mycompany/app/App.java
+        modified:   src/main/java/com/mycompany/app/Factorizer.java
+        modified:   src/main/java/com/mycompany/app/FactorizerImpl.java
 
-Untracked files:
-  (use "git add <file>..." to include in what will be committed)
-        src/main/java/com/mycompany/app/Factorizer.java
-        src/main/java/com/mycompany/app/FactorizerImpl.java
+no changes added to commit (use "git add" and/or "git commit -a")
 ```
 
-Compare changes made to file *App.java*:
+Compare changes made to the interface *Factorizer.java*:
 
 ```sh
-git diff src/main/java/com/mycompany/app/App.java
+git diff src/main/java/com/mycompany/app/Factorizer.java
 ```
 ```diff
-diff --git a/src/main/java/com/mycompany/app/App.java b/src/main/java/com/mycompany/app/App.java
-index 735f1e0..1935c12 100644
---- a/src/main/java/com/mycompany/app/App.java
-+++ b/src/main/java/com/mycompany/app/App.java
-@@ -5,6 +5,9 @@ package com.mycompany.app;
-  */
- public class App {
-     public static void main(String[] args) {
--        System.out.println("Hello World!");
-+        System.out.println("Hello Factorizer!");
-+        // 
-+        Factorizer factorizer = Factorizer.getInstance();
-+        factorizer.run(args);
-    }
-}
+diff --git a/src/main/java/com/mycompany/app/Factorizer.java b/src/main/java/com
+/mycompany/app/Factorizer.java
+index b7f86bc..26164f2 100644
+--- a/src/main/java/com/mycompany/app/Factorizer.java
++++ b/src/main/java/com/mycompany/app/Factorizer.java
+@@ -31,7 +31,7 @@ public interface Factorizer {
+      * @param n number to factorize
+      * @return factors
+      */
+-    public List<Integer> factorize(Integer n);
++    public List<Integer> factorize(Long n);
 ```
 
-If everything looks good, commit the development to the `factorizer` branch.
+
+&nbsp;
+
+*Step 10:* If everything works, commit with message:
+`"factorize(n) working with args"` to branch *"factorizer"*.
 
 ```sh
 git log --oneline                               # show commit log
 ```
 ```
-83534b9 (HEAD -> factorizer) factorizer implementation completed
-c787b3e (main) add .git-modules                 <-- branch 'main' is here
-c319e7c add pom.xml, src
-841895e add .gitignore
-368b85b (tag: root) root commit (empty)
+d9489a2 (HEAD -> factorizer) factorize(n) working with args
+443eff0 basic args processing working
+838d2f1 (main) add pom.xml, src                 <-- branch 'main' is here
+8fe8147 add .gitignore
+b57c767 (tag: root) root commit (empty)
 ```
 
 Show the files that comprise that commit:
@@ -961,8 +1064,7 @@ Show the files that comprise that commit:
 git diff-tree --name-only -r HEAD
 ```
 ```
-83534b9f22ae51d0d48c96b0571f93e19fc805d3
-src/main/java/com/mycompany/app/App.java
+d9489a2204f930a58c971cf6e4f8675ca530b3b7
 src/main/java/com/mycompany/app/Factorizer.java
 src/main/java/com/mycompany/app/FactorizerImpl.java
 ```
@@ -972,7 +1074,416 @@ src/main/java/com/mycompany/app/FactorizerImpl.java
 
 &nbsp;
 
-## 9. Refactor *GroupId* and *ArtifactId*
+## 10. Unit Tests
+
+Create JUnit tests for method: `factorize(n)` that test:
+
+1. regular cases: `n=1, n=2, n=3, n=4, n=27, n=65536, n=10952347, n=100000039 (prime number)`.
+
+1. valid corner cases: `n=0, n=2147483646 (MAX_INT-1), n=2147483647 (MAX_INT)` -- corner
+    cases test valid input boundaries.
+
+1. (invalid) exception cases: `n=-1, n=-10, n=-2147483648` -- exception cases
+    test that the `factorize(int n)` method throw an `IllegalArgumentException`
+    with message: `negative argument`.
+
+
+Create the `FactorizerTests` test class with methods:
+
+```java
+package com.mycompany.app;
+
+import java.util.List;
+import java.util.stream.Stream;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Order;
+
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertIterableEquals;
+
+// import org.hamcrest.Matchers;
+// import static org.hamcrest.Matchers.containsInAnyOrder;
+// import static org.hamcrest.MatcherAssert.assertThat;
+
+
+public class FactorizerTests {
+
+    /**
+     * Object under test: reference to singleton instance of (hidden) implementation class.
+     */
+    private final Factorizer factorizer = Factorizer.getInstance();
+
+    private List<Integer> expected, actual;
+    private long n;
+
+
+    @Test
+    @Order(100)
+    void test100_factorize_case_n_is_0() {
+        n = 0L;
+        actual = factorizer.factorize(n);
+        assertTrue(actual.isEmpty());   // factorize(0) -> empty list
+    }
+
+    //@Test
+    @Order(101)
+    void test101_factorize_case_n_is_1() {
+        n = 1L;
+        ... // factorize(1) -> empty list
+    }
+
+    //@Test
+    @Order(102)
+    void test102_factorize_case_n_is_2() {
+        n = 2L;
+        expected = List.of(2);
+        actual = factorizer.factorize(n);
+        assertIterableEquals(expected, actual);   // factorize(2) -> [2]
+    }
+
+    //@Test
+    @Order(103)
+    void test103_factorize_case_n_is_3() {
+        n = 3L;
+        ... // factorize(3) -> [3]
+    }
+
+    //@Test
+    @Order(112)
+    void test112_factorize_case_n_is_12() {
+        n = 12L;
+        expected = List.of(3, 2, 2);    // mind order, could also be [2, 3, 2]
+        actual = factorizer.factorize(n);
+        assertIterableEquals(expected, actual);
+        // 
+        // use Hamcrest matcher to compare two lists ignoring order
+        // assertThat(expected, Matchers.containsInAnyOrder(actual.toArray()));
+    }
+
+    /**
+     * Test other regular cases: n=1, n=2, n=3, n=4, n=27, n=65536, n=10952347,
+     * n=100000039 (prime number).
+     */
+    //@Test
+    @Order(200)
+    void test200_factorize_other_regular_cases() {
+        //
+        Stream.of(1, 2, 3, 4, 27, 65536, 10952347, 100000039)
+            .forEach(n -> {
+                ...
+            });
+    }
+
+    /**
+     * Test valid corner cases: n=0, n=2147483646 (MAX_INT-1), n=2147483647 (MAX_INT).
+     */
+    //@Test
+    @Order(300)
+    void test300_factorize_corner_cases() {
+        ...
+    }
+
+    /**
+     * Test (invalid) exception cases: n=-1, n=-10, n=-2147483648 (-MAX_INT).
+     * Exception cases that test that method {@code factorize(int n)} throws
+     * {@code IllegalArgumentException} with message: "illegal negative parameter: n".
+     */
+    //@Test
+    @Order(400)
+    void test400_factorize_exception_cases() {
+        ...
+    }
+}
+```
+
+Run tests in your IDE. Test `test100_factorize_case_n_is_0` should appear and pass (green)
+for `n = 0L` returning an empty list of factors.
+
+Next, remove comments from the `//@Test` annotation for test `test101_factorize_case_n_is_1`
+and complete the test code for `n = 1L`.
+
+Continue until: `test112_factorize_case_n_is_12`, which factors `n = 12L` yielding factors
+`[2, 2, 3]`.
+
+```java
+//@Test
+@Order(112)
+void test112_factorize_case_n_is_12() {
+    n = 12L;
+    expected = List.of(3, 2, 2);    // mind order, could also be [2, 3, 2]
+    actual = factorizer.factorize(n);
+    assertIterableEquals(expected, actual);
+    // 
+    // use Hamcrest matcher to compare two lists ignoring order
+    // assertThat(expected, Matchers.containsInAnyOrder(actual.toArray()));
+}
+```
+
+JUnit's `assertIterableEquals(expected, actual);` compares the two lists in
+the given order, which however is `[3, 2, 2]`.
+
+Of course, the order of the *expected* list could be adjusted, but another
+factorizer algorithm could return any other order later. Hence, collection
+comparison's where any order is accepted (such as for prime factors) should
+not depend on the comparison order in tests.
+
+*JUnit* offers a limited set of
+[*JUnit Assertions*](https://medium.com/javarevisited/junit-5-assertions-5d360545e3a)
+that does not include collection comparisons ignoring order.
+
+[*"Hamcrest"*](https://hamcrest.org/JavaHamcrest) is a popular package with
+a comprehensive set of collection (and other) *"matchers"* that provide this
+capability.
+
+Baeldung's guide
+[*"Testing with Hamcrest"*](https://www.baeldung.com/java-junit-hamcrest-guide)
+or the
+[*"Hamcrest Tutorial"*](https://hamcrest.org/JavaHamcrest/tutorial)
+provide good introductions to *Hamcrest*.
+
+For our *test_012*, instead of *JUnit's* *assertIterableEquals*, we will use
+a *Hamcrest matcher*:
+
+```java
+    // assertIterableEquals(expected, actual);  // JUnit assertion
+    // 
+    // use Hamcrest matcher to compare two lists ignoring order
+    assertThat(expected, Matchers.containsInAnyOrder(actual.toArray()));
+```
+
+Make that change in *test_012*. You will notice that *Hamcrest* imports will
+turn red as unresolved references since the *Hamcrest* package is not yet
+present in the project.
+
+Include the *Hamcrest* package into the project (version 3.0) and
+continue completing tests using the *Hamcrest matcher* for comparing
+lists.
+
+Complete unit tests and run in your IDE:
+
+<img src="https://raw.githubusercontent.com/sgra64/mvn-fun/refs/heads/markup/img/vscode-tests.png" width="1200"/>
+
+
+&nbsp;
+
+Run tests also in the terminal:
+
+```sh
+mvn test
+```
+```
+[INFO] -------------------------------------------------------
+[INFO]  T E S T S
+[INFO] -------------------------------------------------------
+[INFO] Running com.mycompany.app.AppTest
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.153 s -
+- in com.mycompany.app.AppTest
+[INFO] Running com.mycompany.app.FactorizerTests
+[INFO] Tests run: 8, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.078 s -
+- in com.mycompany.app.FactorizerTests
+[INFO]
+[INFO] Results:
+[INFO]
+[INFO] Tests run: 9, Failures: 0, Errors: 0, Skipped: 0
+[INFO]
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  9.450 s
+[INFO] Finished at: 2026-04-15T20:51:57+02:00
+[INFO] ------------------------------------------------------------------------
+```
+
+In article [*My journey to a clear test output in Maven*](https://medium.com/wearewaes/my-journey-to-a-clear-test-output-in-maven-df82fe272249),
+author *Fabrício Yamamoto* describes a method to produce more readable output
+for running tests. Include the plugin into you `pom.xml`:
+
+```xml
+<build>
+  <plugins>
+      <plugin>
+          <artifactId>maven-surefire-plugin</artifactId>
+          <version>3.0.0-M7</version>
+          <dependencies>
+              <dependency>
+                  <groupId>me.fabriciorby</groupId>
+                  <artifactId>maven-surefire-junit5-tree-reporter</artifactId>
+                  <version>1.1.0</version>
+              </dependency>
+          </dependencies>
+          <configuration>
+              <reportFormat>plain</reportFormat>
+              <consoleOutputReporter>
+              <disable>true</disable>
+              </consoleOutputReporter>
+              <statelessTestsetInfoReporter implementation="org.apache.maven.plugin.surefire.extensions.junit5.JUnit5StatelessTestsetInfoTreeReporterUnicode"/>
+          </configuration>
+      </plugin>
+  </plugins>
+</build>
+```
+
+Re-run tests:
+
+
+<img src="https://raw.githubusercontent.com/sgra64/mvn-fun/refs/heads/markup/img/mvn-tests-1.png" width="600"/>
+<!-- 
+```
+[INFO] -------------------------------------------------------
+[INFO]  T E S T S
+[INFO] -------------------------------------------------------
+[INFO] ├─ com.mycompany.app.AppTest - 0.144s
+[INFO] │  └─ ✔ shouldAnswerWithTrue - 0.085s
+[INFO] ├─ com.mycompany.app.FactorizerTests - 0.071s
+[INFO] │  ├─ ✔ test102_factorize_case_n_is_2 - 0.004s
+[INFO] │  ├─ ✔ test103_factorize_case_n_is_3 - 0.003s
+[INFO] │  ├─ ✔ test112_factorize_case_n_is_12 - 0.02s
+[INFO] │  ├─ ✔ test400_factorize_exception_cases - 0.005s
+[INFO] │  ├─ ✔ test100_factorize_case_n_is_0 - 0.002s
+[INFO] │  ├─ ✔ test300_factorize_corner_cases - 0.005s
+[INFO] │  ├─ ✔ test101_factorize_case_n_is_1 - 0.002s
+[INFO] │  └─ ✔ test200_factorize_other_regular_cases - 0.003s
+[INFO]
+[INFO] Results:
+[INFO] Tests run: 9, Failures: 0, Errors: 0, Skipped: 0
+[INFO]
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  6.728 s
+[INFO] Finished at: 2026-04-15T20:59:36+02:00
+[INFO] ------------------------------------------------------------------------
+```
+-->
+
+
+&nbsp;
+
+The *maven*
+[*Surefire Report Plugin*](https://maven.apache.org/surefire/maven-surefire-report-plugin/)
+creates test reports.
+
+Add another fragment to `pom.xml` between `</dependencies>` and `<build>`:
+
+```xml
+<reporting>
+    <plugins>
+        <!-- Erzeugt die Quellcode-Referenzen -->
+        <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-jxr-plugin</artifactId>
+            <version>3.3.0</version> <!-- Nutze die aktuellste Version -->
+        </plugin>
+        
+        <!-- Dein Report Plugin (z.B. Surefire) -->
+        <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-surefire-report-plugin</artifactId>
+            <version>3.1.2</version>
+        </plugin>
+    </plugins>
+</reporting>
+```
+
+Create a test report:
+<!-- 
+mvn site -DgenerateReports=false        # generate .css
+ -->
+```sh
+mvn surefire-report:report              # generate test reports under 'target/surefire-reports'
+
+# open test-report
+chrome target/reports/surefire.html     # open test report in browser
+```
+
+<img src="https://raw.githubusercontent.com/sgra64/mvn-fun/refs/heads/markup/img/test-report-clean.png" width="600"/>
+
+Test-reports are used during nightly build to inform the team the code base
+is clean, which means it builds (no compile errors) and all tests pass.
+
+Errors are reported in the test report as well:
+<!-- 
+<img src="https://raw.githubusercontent.com/sgra64/mvn-fun/refs/heads/markup/img/test-report-error.png" width="600"/>
+ -->
+
+[*Test report*](https://raw.githubusercontent.com/sgra64/mvn-fun/refs/heads/markup/img/test-report-error.png)
+with failed test case *test112*.
+
+
+&nbsp;
+
+When everything works, commit tests to the `factorizer` branch with message
+`add unit tests: FactorizerTests.java`:
+
+```sh
+git log --oneline                       # show commit log
+```
+```
+1a0504a (HEAD -> factorizer) add unit tests: FactorizerTests.java
+d9489a2 factorize(n) working with args
+443eff0 basic args processing working
+838d2f1 (main) add pom.xml, src                      <-- 'main' branch
+8fe8147 add .gitignore
+b57c767 (tag: root) root commit (empty)
+```
+
+
+<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+
+&nbsp;
+
+## 11. *Javadoc*
+
+*Javadoc* is *Java's* documentation method and toolset based on
+[*Java doc strings*](https://de.wikipedia.org/wiki/Javadoc)
+that are included in Java comments.
+
+The `javadoc` compiler parses `.java` files and "*compiles*" HTML documentation
+from *Java doc strings*.
+
+Invoke the `javadoc` compiler:
+
+```sh
+javadoc -d target/docs -Xdoclint:-missing $(find src/main/java -name '*.java')
+```
+```
+Loading source file src\main\java\com\mycompany\app\App.java...
+Loading source file src\main\java\com\mycompany\app\Factorizer.java...
+Loading source file src\main\java\com\mycompany\app\FactorizerImpl.java...
+Constructing Javadoc information...
+Creating destination directory: "target/docs\"
+Building index for all the packages and classes...
+Standard Doclet version 21+35-LTS-2513
+Building tree for all the packages and classes...
+Generating target\docs\com\mycompany\app\App.html...
+Generating target\docs\com\mycompany\app\Factorizer.html...
+Generating target\docs\com\mycompany\app\package-summary.html...
+Generating target\docs\com\mycompany\app\package-tree.html...
+Generating target\docs\overview-tree.html...
+Building index for all classes...
+Generating target\docs\allclasses-index.html...
+Generating target\docs\allpackages-index.html...
+Generating target\docs\index-all.html...
+Generating target\docs\search.html...
+Generating target\docs\index.html...
+Generating target\docs\help-doc.html...
+```
+
+Open the HTML in a browser:
+
+```sh
+chrome target/docs/index.html
+```
+
+<img src="https://raw.githubusercontent.com/sgra64/mvn-fun/refs/heads/markup/img/javadoc-factorizer.png" width="600"/>
+
+
+<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+
+&nbsp;
+
+## 12. Refactor *GroupId* and *ArtifactId*
 
 Remember what
 [*Refactoring*](https://refactoring.guru/refactoring)
@@ -1036,6 +1547,9 @@ Perform the changes starting with *pom.xml* and then for *source* and
 Rebuild the project and re-run:
 
 ```sh
+# load classpath file into CLASSPATH environment variable for java
+export CLASSPATH=$(cat target/classpath)
+
 java de.factorizer.App 3 27 1092 65536 10952347 100000039
 ```
 
@@ -1235,195 +1749,7 @@ c319e7c add pom.xml, src
 
 &nbsp;
 
-## 10. Unit Tests
-
-Create JUnit tests for method: `factorize(int n)` that test:
-
-1. regular cases: `n=1, n=2, n=3, n=4, n=27, n=65536, n=10952347, n=100000039 (prime number)`.
-
-1. valid corner cases: `n=0, n=2147483646 (MAX_INT-1), n=2147483647 (MAX_INT)` -- corner
-    cases test valid input boundaries.
-
-1. (invalid) exception cases: `n=-1, n=-10, n=-2147483648` -- exception cases test that
-    the `factorize(int n)` method throw an `IllegalArgumentException` with message:
-    `negative argument`.
-
-
-You can use methods in the `FactorizerTests` test class:
-
-```java
-{
-    /**
-     * Test regular cases: n=1, n=2, n=3, n=4, n=27, n=65536, n=10952347,
-     * n=100000039 (prime number).
-     */
-    @Test
-    @Order(100)
-    void test100_factorize_regular_cases() {
-        // test code
-    }
-
-    /**
-     * Test valid corner cases: n=0, n=2147483646 (MAX_INT-1), n=2147483647 (MAX_INT).
-     */
-    @Test
-    @Order(200)
-    void test200_factorize_corner_cases() {
-        // test code
-    }
-
-    /**
-     * Test (invalid) exception cases: n=-1, n=-10, n=-2147483648.
-     * Exception cases that test that method {@code factorize(int n)} throws
-     * {@code IllegalArgumentException} with message: "illegal negative parameter: n".
-     */
-    @Test
-    @Order(300)
-    void test300_factorize_exception_cases() {
-        // test code
-    }
-}
-```
-
-Develop tests in the IDE and make tests pass for all cases.
-
-Make sure tests pass with *maven* as well:
-
-```sh
-mvn test                                # run JUnit tests
-```
-```
-[INFO]
-[INFO] -------------------------------------------------------
-[INFO]  T E S T S
-[INFO] -------------------------------------------------------
-[INFO] Running de.factorizer.AppTest
-[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.094 s -- in de.factorizer.AppTest
-[INFO] Running de.factorizer.FactorizerTest
-[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.040 s -- in de.factorizer.FactorizerTest
-[INFO]
-[INFO] Results:
-[INFO]
-[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0
-[INFO]
-[INFO] ------------------------------------------------------------------------
-[INFO] BUILD SUCCESS
-[INFO] ------------------------------------------------------------------------
-[INFO] Total time:  3.071 s
-[INFO] Finished at: 2025-04-09T22:13:13+02:00
-[INFO] ------------------------------------------------------------------------
-```
-
-Run tests also in the IDE:
-
-<img src="https://raw.githubusercontent.com/sgra64/mvn-fun/refs/heads/markup/img/vscode-tests.png" width="1200"/>
-
-
-&nbsp;
-
-When everything works, commit tests to the `factorizer` branch:
-
-```sh
-git log --oneline                       # show commit log
-```
-```
-19c8646 (HEAD -> factorizer) add unit tests: FactorizerTests.java
-86aecee refactoring to 'de.factorize' (with jar working)
-83534b9 factorizer implementation completed
-530de68 (main) add pom.xml, src                      <-- 'main' branch
-96b05a4 add .gitignore
-02082e3 (tag: root) root commit (empty)
-```
-
-The *maven*
-[*Surefire Report Plugin*](https://maven.apache.org/surefire/maven-surefire-report-plugin/)
-creates test reports.
-
-Create test reports in `target/surefire-reports` (*.txt, *.xml) and
-`target/site` (HTML):
-
-```sh
-mvn site -DgenerateReports=false        # generate .css
-mvn surefire-report:report              # generate test reports under 'target/surefire-reports'
-
-# show test-report
-cat cat target/surefire-reports/de.factorizer.FactorizerTests.txt
-```
-```
--------------------------------------------------------------------------------
-Test set: de.factorizer.FactorizerTests
--------------------------------------------------------------------------------
-Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.047 s -- in de.factorizer.FactorizerTests
-```
-
-Open the HTML test report in a browser (if you don't have or cannot invoke *chrome* as command,
-open avweb-browser and navigate to the *.html* file):
-
-```sh
-chrome target/site/surefire-report.html
-```
-
-<img src="https://raw.githubusercontent.com/sgra64/mvn-fun/refs/heads/markup/img/test-report-clean.png" width="600"/>
-
-[*Test report*](https://raw.githubusercontent.com/sgra64/mvn-fun/refs/heads/markup/img/test-report-error.png)
-with a failed *test100*.
-
-
-<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
-
-&nbsp;
-
-## 11. *Javadoc*
-
-*Javadoc* is *Java's* documentation method and toolset based on
-[*Java doc strings*](https://de.wikipedia.org/wiki/Javadoc)
-that are included in Java comments.
-
-The `javadoc` compiler parses `.java` files and "*compiles*" HTML documentation
-from *Java doc strings*.
-
-Invoke the `javadoc` compiler:
-
-```sh
-javadoc -d target/docs -Xdoclint:-missing $(find src/main/java -name '*.java')
-```
-```
-Loading source file src\main\java\de\factorizer\App.java...
-Loading source file src\main\java\de\factorizer\Factorizer.java...
-Loading source file src\main\java\de\factorizer\FactorizerImpl.java...
-Constructing Javadoc information...
-Creating destination directory: "target/docs\"
-Building index for all the packages and classes...
-Standard Doclet version 21+35-LTS-2513
-Building tree for all the packages and classes...
-Generating target\docs\de\factorizer\App.html...
-Generating target\docs\de\factorizer\Factorizer.html...
-Generating target\docs\de\factorizer\package-summary.html...
-Generating target\docs\de\factorizer\package-tree.html...
-Generating target\docs\overview-tree.html...
-Building index for all classes...
-Generating target\docs\allclasses-index.html...
-Generating target\docs\allpackages-index.html...
-Generating target\docs\index-all.html...
-Generating target\docs\search.html...
-Generating target\docs\index.html...
-Generating target\docs\help-doc.html...
-```
-
-Open the HTML in a browser:
-
-```sh
-chrome target/docs/index.html
-```
-
-<img src="https://raw.githubusercontent.com/sgra64/mvn-fun/refs/heads/markup/img/javadoc-factorizer.png" width="600"/>
-
-
-<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
-
-&nbsp;
-
-## 12. Release
+## 13. Release
 
 Create a *release*-branch off the *main*-branch (not branch *factorizer*):
 
@@ -1685,7 +2011,68 @@ or pushed to an *artifact repository*:
 
 &nbsp;
 
-## 13. *Build-Process* and *Continuous Integration (CI)*
+## 14. Push Project to a Remote Repository
+
+Create a new remote repository: `mvn-fun` at *Gitlab* or *GitHub* and push
+branches:
+
+- `main`,
+
+- `factorizer`,
+
+- `release`
+
+to the remote repository.
+
+Use your account at
+[*BHT GitLab*](https://gitlab.bht-berlin.de/) or
+[*GitHub*](https://github.com)
+(or another remote repository site) to host the remote repository.
+
+<!-- Results should show no errors:
+
+<img src="https://github.com/sgra64/c-fun/blob/markup/img/show-versions-2.png?raw=true" width="800"/> -->
+
+
+<!-- relative paths work for tags and branches -->
+<!-- - Step 1 (tag: [*t0*](https://github.com/sgra64/se1-play/tree/t0)) - -->
+<!-- - Step 1 (tag: [*t0*](../../tree/t0)) -
+    initial commit with [*.gitignore*](.gitignore) `README.md` files.
+
+- Step 2 (tag: [*t1*](../../tree/t1)) -
+    commit with the [*.vscode*](.vscode) settings folder for the *VSCode* IDE.
+
+- Step 3 (tag: [*t2*](../../tree/t2)) -
+    commit with `.env.sh`, the script to *source* the project
+    (see: setup the project environment).
+
+- Step 4 (tag: [*root*](../../tree/root)) -
+    commit with `src`, `tests` and `resources` folders added.
+
+- Step 5: a separate branch: [*libs*](../../tree/libs)
+    containing *.jar* - libraries are added that are required by the project. -->
+
+<!-- 
+The following steps must be performed by a developer on a laptop
+for *onboarding* the project.
+
+- Step 6, section [*Getting the Project*](#getting-the-project-se1-play).
+
+- Step 7, section [*Project Setup*](#project-setup).
+
+- Step 8, section [*Project Build*](#project-build).
+
+- Step 9, section [*Running the Application*](#running-the-application).
+
+- Summary: [*Complete Project Content*](#complete-project-content)
+ -->
+
+
+<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+
+&nbsp;
+
+## 15. *Build-Process* and *Continuous Integration (CI)*
 
 The *build process* transforms source code into an executable artifact (for Java,
 this is a *.jar* file) that can be released, distributed, deployed and executed.
@@ -1756,62 +2143,3 @@ From the article:
     *Continuous delivery* is concerned with deploying the software to
     *testing*, *staging* and *production* environments."
 
-
-<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
-
-&nbsp;
-
-## 14. Host Project in a Remote Repository
-
-Create a new repository: `mvn-fun` and push branches:
-
-- `main`,
-
-- `factorizer`,
-
-- `release`
-
-to the remote repository.
-
-Use your account at
-[*BHT GitLab*](https://gitlab.bht-berlin.de/) or
-[*GitHub*](https://github.com)
-(or another remote repository site) to host the remote repository.
-
-<!-- Results should show no errors:
-
-<img src="https://github.com/sgra64/c-fun/blob/markup/img/show-versions-2.png?raw=true" width="800"/> -->
-
-
-<!-- relative paths work for tags and branches -->
-<!-- - Step 1 (tag: [*t0*](https://github.com/sgra64/se1-play/tree/t0)) - -->
-<!-- - Step 1 (tag: [*t0*](../../tree/t0)) -
-    initial commit with [*.gitignore*](.gitignore) `README.md` files.
-
-- Step 2 (tag: [*t1*](../../tree/t1)) -
-    commit with the [*.vscode*](.vscode) settings folder for the *VSCode* IDE.
-
-- Step 3 (tag: [*t2*](../../tree/t2)) -
-    commit with `.env.sh`, the script to *source* the project
-    (see: setup the project environment).
-
-- Step 4 (tag: [*root*](../../tree/root)) -
-    commit with `src`, `tests` and `resources` folders added.
-
-- Step 5: a separate branch: [*libs*](../../tree/libs)
-    containing *.jar* - libraries are added that are required by the project. -->
-
-<!-- 
-The following steps must be performed by a developer on a laptop
-for *onboarding* the project.
-
-- Step 6, section [*Getting the Project*](#getting-the-project-se1-play).
-
-- Step 7, section [*Project Setup*](#project-setup).
-
-- Step 8, section [*Project Build*](#project-build).
-
-- Step 9, section [*Running the Application*](#running-the-application).
-
-- Summary: [*Complete Project Content*](#complete-project-content)
- -->
